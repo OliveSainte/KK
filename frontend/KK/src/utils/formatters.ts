@@ -1,6 +1,9 @@
 import firebase from "firebase/compat/app";
 
-export const formatDateTime = (timestamp: firebase.firestore.Timestamp) => {
+export const formatDateTime = (
+  timestamp: firebase.firestore.Timestamp | undefined | null
+) => {
+  if (!timestamp) return "";
   const date = timestamp.toDate(); // Convert Firestore Timestamp to Date
   return date.toLocaleString("en-US", {
     weekday: "long",

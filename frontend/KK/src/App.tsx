@@ -8,6 +8,12 @@ import PoopEntries from "./components/PoopEntries";
 import LoginPage from "./components/Login";
 import UserPage from "./components/UserPage";
 import { CircularProgress, Box } from "@mui/material";
+import { initReactI18next } from "react-i18next";
+import i18n from "i18next";
+
+// Import translation files synchronously
+import enTranslations from "./i18n/en/translations.json";
+import frTranslations from "./i18n/fr/translations.json";
 
 // Create AuthContext inline
 const AuthContext = createContext<{ currentUser: User | null }>({
@@ -16,8 +22,9 @@ const AuthContext = createContext<{ currentUser: User | null }>({
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [currentRoute, setCurrentRoute] = useState("/");
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [currentRoute, setCurrentRoute] = useState<string>("/");
+  const [loading, setLoading] = useState<boolean>(true); // Add loading state
+  const [currentLang, setCurrentLang] = useState<string>("fr");
   const location = useLocation();
 
   useEffect(() => {
@@ -38,6 +45,27 @@ function App() {
   useEffect(() => {
     setCurrentRoute(location.pathname);
   }, [location]);
+
+  // Initialize i18n with translation resources
+  useEffect(() => {
+    i18n
+      .use(initReactI18next) // passes i18n down to react-i18next
+      .init({
+        resources: {
+          en: {
+            translation: enTranslations,
+          },
+          fr: {
+            translation: frTranslations,
+          },
+        },
+        lng: currentLang,
+        fallbackLng: "en",
+        interpolation: {
+          escapeValue: false,
+        },
+      });
+  }, [currentLang]);
 
   return (
     <AuthContext.Provider value={{ currentUser }}>
@@ -60,7 +88,11 @@ function App() {
               <Route path="/see-poops" element={<PoopEntries />} />
               <Route path="/user" element={<UserPage />} />
             </Routes>
-            <BottomNavigationBar currentRoute={currentRoute} />
+            <BottomNavigationBar
+              currentRoute={currentRoute}
+              currentLang={currentLang}
+              setCurrentLang={setCurrentLang}
+            />
           </>
         ) : (
           <LoginPage />

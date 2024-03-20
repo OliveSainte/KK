@@ -6,6 +6,10 @@ import {
   Snackbar,
   Typography,
   MenuItem,
+  Checkbox,
+  FormControlLabel,
+  Rating,
+  Stack,
 } from "@mui/material";
 import { PoopEntry } from "../types/PoopEntry";
 import { useNavigate } from "react-router-dom";
@@ -43,6 +47,8 @@ const PoopEntryForm: React.FC = () => {
   const [color, setColor] = useState<PoopColor | "">("");
   const [notes, setNotes] = useState("");
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [atHome, setAtHome] = useState(false); // State for the 'atHome' field
+  const [rating, setRating] = useState<number>(0); // State for the 'atHome' field
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -55,6 +61,9 @@ const PoopEntryForm: React.FC = () => {
       consistency,
       color,
       notes,
+      comments: [],
+      atHome,
+      rating,
     };
     await setDoc(doc(firestore, "poopEntries", newPoop.id), newPoop).then(
       () => {
@@ -68,6 +77,7 @@ const PoopEntryForm: React.FC = () => {
         setConsistency("");
         setColor("");
         setNotes("");
+        setRating(0);
       }
     );
   };
@@ -84,6 +94,24 @@ const PoopEntryForm: React.FC = () => {
         <Typography variant="h4" gutterBottom align="center">
           Pooped?
         </Typography>
+        <Stack direction="row">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={atHome}
+                onChange={(e) => setAtHome(e.target.checked)}
+              />
+            }
+            label="At Home"
+          />
+          <Rating
+            name="rating"
+            value={rating}
+            onChange={(_, newValue) => setRating(newValue as number)}
+            precision={0.5} // Allow half-star ratings
+            size="large" // Set the size of the stars
+          />
+        </Stack>
         <TextField
           required
           select
