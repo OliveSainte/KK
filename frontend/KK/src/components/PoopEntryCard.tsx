@@ -92,7 +92,11 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
     <Card onClick={toggleComments} style={{ cursor: "pointer" }}>
       <CardContent>
         <Typography variant="subtitle2" component="div">
-          <Chip label={entry.number} sx={{ marginRight: "0.5rem" }} />
+          <Chip
+            label={entry.number}
+            size="small"
+            sx={{ marginRight: "0.5rem" }}
+          />
           {entry.createdByName} {entry.atHome ? "HOME" : "AWAY"}
           <Rating
             disabled
@@ -100,7 +104,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
             name="rating"
             value={entry.rating}
             precision={0.5}
-            size="medium"
+            size="small"
           />
           {entry.comments?.length > 0 && (
             <Chip
@@ -111,14 +115,16 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
             ></Chip>
           )}
         </Typography>
-        <Typography color="textSecondary" gutterBottom>
-          {formatDateTime(entry.dateTime)}
-        </Typography>
+
         {expandedComments && (
           <div>
             <Divider />
+
             <Typography>
               {entry.color}-{entry.consistency}-{entry.type}
+            </Typography>
+            <Typography color="textSecondary" gutterBottom>
+              {formatDateTime(entry.dateTime)}
             </Typography>
             {entry.notes && (
               <Typography variant="body1">
