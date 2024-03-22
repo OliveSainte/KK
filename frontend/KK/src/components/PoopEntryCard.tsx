@@ -54,6 +54,21 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
           });
           return updatedData || [];
         });
+        queryClient.setQueryData<PoopEntry[]>(
+          ["userPoopEntries", currentUser?.uid],
+          (oldData) => {
+            const updatedData = oldData?.map((item) => {
+              if (item.id === entry.id) {
+                return {
+                  ...item,
+                  comments: updatedComments,
+                };
+              }
+              return item;
+            });
+            return updatedData || [];
+          }
+        );
         setCommentText("");
       } else {
         console.error("Poop entry document does not exist");
