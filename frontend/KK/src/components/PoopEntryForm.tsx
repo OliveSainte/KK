@@ -101,6 +101,7 @@ const PoopEntryForm: React.FC = () => {
           setShowSuccessToast(true);
           setTimeout(() => {
             queryClient.invalidateQueries("userPoopEntries");
+            queryClient.invalidateQueries("poopEntries");
             setShowSuccessToast(false);
           }, 1000);
 
