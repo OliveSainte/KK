@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState, useContext } from "react";
+import { createContext, useEffect, useState, useContext } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import Home from "./components/Home";

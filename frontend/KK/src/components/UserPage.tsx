@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { getAuth, signOut } from "firebase/auth";
 import { useAuth } from "../App";

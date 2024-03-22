@@ -1,130 +1,73 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Grid,
   Card,
   CardContent,
   Typography,
-  Divider,
   CircularProgress,
-  Rating,
 } from "@mui/material";
 import { PoopEntry } from "../types/PoopEntry";
-import { getDocs, collection, query, where } from "firebase/firestore";
+import { getDocs, collection, query, where, orderBy } from "firebase/firestore";
 import { firestore } from "../firebase";
-import { formatDateTime } from "../utils/formatters";
 import { useAuth } from "../App";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "react-query";
+import PoopEntryCard from "./PoopEntryCard";
 
 const PoopEntries: React.FC = () => {
   const { t } = useTranslation();
-  const [poopEntries, setPoopEntries] = useState<PoopEntry[]>([]);
-  const [selectedPoops, setSelectedPoops] = useState<PoopEntry[]>([]);
-  const [isLoadingPoops, setIsLoadingPoops] = useState(true);
   const { currentUser } = useAuth();
 
-  useEffect(() => {
-    async function fetchPoopEntries() {
-      try {
-        if (currentUser) {
-          const userPoopsQuery = query(
-            collection(firestore, "poopEntries"),
-            where("createdById", "==", currentUser.uid)
-          );
-
-          const querySnapshot = await getDocs(userPoopsQuery);
-          const entries: PoopEntry[] = [];
-          querySnapshot.forEach((doc) => {
-            entries.push({ id: doc.id, ...doc.data() } as PoopEntry);
-          });
-
-          setPoopEntries(entries);
-          setIsLoadingPoops(false);
-        } else {
-          console.log("User not authenticated.");
-        }
-      } catch (error) {
-        console.error("Error fetching poop entries:", error);
-      }
+  // Use useQuery to fetch poop entries
+  const {
+    isLoading,
+    data: poopEntries,
+    error,
+  } = useQuery<PoopEntry[], Error>(
+    ["userPoopEntries", currentUser?.uid],
+    async () => {
+      if (!currentUser) throw new Error("User not authenticated.");
+      const userPoopsQuery = query(
+        collection(firestore, "poopEntries"),
+        orderBy("dateTime", "desc"),
+        where("createdById", "==", currentUser.uid)
+      );
+      const querySnapshot = await getDocs(userPoopsQuery);
+      const entries: PoopEntry[] = [];
+      querySnapshot.forEach((doc) => {
+        entries.push({ id: doc.id, ...doc.data() } as PoopEntry);
+      });
+      return entries;
+    },
+    {
+      staleTime: 120000,
     }
-    fetchPoopEntries();
-  }, [currentUser]);
-
-  const handlePoopClick = (entry: PoopEntry) => {
-    setSelectedPoops((prevSelected) => {
-      const index = prevSelected.findIndex((poop) => poop.id === entry.id);
-      if (index === -1) {
-        // If the poop entry is not already selected, add it to the selected list
-        return [...prevSelected, entry];
-      } else {
-        // If the poop entry is already selected, remove it from the selected list
-        const updatedSelected = [...prevSelected];
-        updatedSelected.splice(index, 1);
-        return updatedSelected;
-      }
-    });
-  };
+  );
 
   return (
     <>
-      {isLoadingPoops ? (
+      {isLoading ? ( // Show loading indicator
         <Grid container justifyContent="center">
           <CircularProgress />
         </Grid>
+      ) : error ? ( // Show error message if there's an error
+        <Typography color="error">{error.message}</Typography>
       ) : (
-        <Grid container spacing={2} textAlign="center">
-          {poopEntries.length === 0 ? (
+        <Grid container spacing={2}>
+          {poopEntries?.length === 0 ? ( // Show message if there are no poop entries
             <Grid item xs={12}>
               <Card sx={{ marginBottom: "16px" }}>
                 <CardContent>
-                  <Typography variant="h5" component="h2">
+                  <Typography variant="h5" component="h2" textAlign="center">
                     {t("newPoop.noPoops")}
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
           ) : (
-            poopEntries.map((entry) => (
-              <Grid key={entry.id} item xs={4}>
-                <Card
-                  sx={{
-                    marginBottom: "16px",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handlePoopClick(entry)}
-                >
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      {formatDateTime(entry.dateTime)}
-                    </Typography>
-                  </CardContent>
-                  <Divider />
-                  {selectedPoops.some((poop) => poop.id === entry.id) && (
-                    <CardContent>
-                      <Typography variant="body1">
-                        {entry.atHome ? "HOME" : "AWAY"}
-                      </Typography>
-                      <Rating
-                        disabled
-                        name="rating"
-                        value={entry.rating}
-                        precision={0.5} // Allow half-star ratings
-                        size="medium" // Set the size of the stars
-                      />
-                      <Typography variant="body1">
-                        Type: {entry.type || "Unset"}
-                      </Typography>
-                      <Typography variant="body1">
-                        Consistency: {entry.consistency || "Unset"}
-                      </Typography>
-                      <Typography variant="body1">
-                        Color: {entry.color || "Unset"}
-                      </Typography>
-                      <Typography variant="body1">
-                        Notes: {entry.notes || "Unset"}
-                      </Typography>
-                    </CardContent>
-                  )}
-                </Card>
+            poopEntries?.map((entry) => (
+              <Grid key={entry.id} item xs={12} sm={6} md={4}>
+                <PoopEntryCard entry={entry} />
               </Grid>
             ))
           )}

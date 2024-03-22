@@ -1,5 +1,4 @@
-import React from "react";
-import { Button, Card, CardContent, Typography, Grid } from "@mui/material";
+import { Button, Card, CardContent, Grid, Avatar, Box } from "@mui/material";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "../firebase";
 import { userRepository } from "../repo/UserRepo";
@@ -18,15 +17,29 @@ const LoginPage = () => {
   };
 
   return (
-    <Grid container justifyContent="center" alignItems="center">
+    <Grid
+      container
+      justifyContent="center"
+      alignItems="center"
+      style={{ minHeight: "100vh" }} // Center vertically
+    >
       <Grid item xs={12} sm={6} md={4}>
         <Card variant="outlined">
+          <Box display="flex" justifyContent="center" alignItems="center" p={2}>
+            <Avatar
+              sx={{
+                width: "15rem", // Adjust the width as desired
+                height: "15rem", // Adjust the height as desired
+                display: "block",
+              }}
+              alt="KK"
+              src="/KK.svg"
+            />
+          </Box>
+
           <CardContent>
-            <Typography variant="h5" align="center" gutterBottom>
-              Login
-            </Typography>
             <Button fullWidth onClick={handleGoogleLogin}>
-              Google
+              Login with Google
             </Button>
           </CardContent>
         </Card>

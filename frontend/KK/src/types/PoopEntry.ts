@@ -2,6 +2,7 @@ import firebase from "firebase/compat/app";
 
 export interface PoopEntry {
   id: string;
+  number: number;
   createdById: string;
   createdByName: string;
   dateTime: firebase.firestore.Timestamp;
