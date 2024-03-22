@@ -13,7 +13,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { PoopEntry } from "../types/PoopEntry";
-import { useNavigate } from "react-router-dom";
 import {
   Timestamp,
   collection,
@@ -71,7 +70,6 @@ const PoopEntryForm: React.FC = () => {
       staleTime: 120000,
     }
   );
-  const navigate = useNavigate();
   const [type, setType] = useState<PoopType | "">("");
   const [consistency, setConsistency] = useState<PoopConsistency | "">("");
   const [color, setColor] = useState<PoopColor | "">("");
@@ -104,7 +102,6 @@ const PoopEntryForm: React.FC = () => {
           setTimeout(() => {
             queryClient.invalidateQueries("userPoopEntries");
             setShowSuccessToast(false);
-            navigate("/see-poops");
           }, 1000);
 
           setType("");
