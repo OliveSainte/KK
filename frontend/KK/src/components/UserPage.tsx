@@ -72,7 +72,7 @@ const UserPage = () => {
   };
 
   return (
-    <div style={{ width: "100%", marginTop: "1.5rem" }}>
+    <div style={{ marginBottom: "4rem", width: "100%", marginTop: "1.5rem" }}>
       <Avatar
         alt={profile?.username}
         src={profile?.profilePicUrl}
