@@ -137,7 +137,7 @@ const PoopStats: React.FC = () => {
                 gutterBottom
                 style={{ marginBottom: "1rem" }}
               >
-                This month you pooped
+                This month you pooped around
                 <Chip
                   variant="outlined"
                   label={`${computeMyAverage.toFixed(2)}`}
@@ -146,7 +146,7 @@ const PoopStats: React.FC = () => {
                     borderColor: brown,
                   }}
                 />{" "}
-                each day.
+                times each day.
               </Typography>
               <Typography variant="body1">
                 {computeMyAverage < 1

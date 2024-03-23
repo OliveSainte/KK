@@ -40,7 +40,7 @@ const Home: React.FC = () => {
   const [tabValue, setTabValue] = useState<number>(0); // State for controlling tabs
 
   return (
-    <div>
+    <div style={{ width: "100%", minHeight: "90vh" }}>
       {isLoading ? (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <CircularProgress />

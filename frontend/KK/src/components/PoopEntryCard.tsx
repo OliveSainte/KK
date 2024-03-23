@@ -11,13 +11,23 @@ import {
   Stack,
 } from "@mui/material";
 import { PoopEntry, Comment } from "../types/PoopEntry";
-import { updateDoc, doc, getDoc, Timestamp } from "firebase/firestore";
+import {
+  updateDoc,
+  doc,
+  getDoc,
+  Timestamp,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { firestore } from "../firebase";
 import { formatDateTime } from "../utils/formatters";
 import { useAuth } from "../App";
 import { nanoid } from "nanoid";
-import { useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import CommentSection from "./CommentSection";
+import { Profile } from "../types/Profile";
 
 interface PoopEntryProps {
   entry: PoopEntry;
@@ -29,6 +39,37 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
   const [commentText, setCommentText] = useState<string>("");
   const [expandedComments, setExpandedComments] = useState<boolean>(false);
 
+  const { data: profile } = useQuery<Profile | null | undefined>(
+    ["profiles", currentUser?.uid],
+    async () => {
+      if (currentUser) {
+        try {
+          const userPoopsQuery = query(
+            collection(firestore, "profiles"),
+            where("id", "==", currentUser?.uid)
+          );
+          const querySnapshot = await getDocs(userPoopsQuery);
+          const entries: Profile[] = [];
+          querySnapshot.forEach((doc) => {
+            entries.push({ id: doc.id, ...doc.data() } as Profile);
+          });
+          // Check if user has a profile, if not, navigate to create profile page
+          if (entries.length === 0) {
+            return null;
+          } else {
+            return entries[0];
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+          return null;
+        }
+      }
+    },
+    {
+      staleTime: 120000,
+    }
+  );
+
   const handleCommentSubmit = async () => {
     try {
       const entryDocRef = doc(firestore, "poopEntries", entry.id);
@@ -36,7 +77,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
       const newComment: Comment = {
         id: nanoid(),
         userId: currentUser?.uid || "",
-        userName: currentUser?.displayName || "Anonymous",
+        userName: profile?.username || "Anonymous",
         text: commentText,
         dateTime: Timestamp.now(),
       };

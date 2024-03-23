@@ -45,7 +45,7 @@ const PoopEntries: React.FC = () => {
   );
 
   return (
-    <div style={{ marginBottom: "4rem" }}>
+    <div style={{ width: "100%", minHeight: "90vh", marginBottom: "4rem" }}>
       {isLoading ? ( // Show loading indicator
         <Grid container justifyContent="center">
           <CircularProgress />

@@ -4,5 +4,8 @@ service cloud.firestore {
     match /poopEntries/{document=**} {
       allow read, write: if true;
     }
+    match /profiles/{document=**} {
+      allow read, write: if true;
+    }
   }
 }
