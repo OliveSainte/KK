@@ -17,6 +17,7 @@ export interface PoopEntry {
 
 export interface Comment {
   id: string;
+  userProfilePic: string;
   userId: string; // ID of the user who posted the comment
   userName: string; // Name of the user who posted the comment
   text: string;

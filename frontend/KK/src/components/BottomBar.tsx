@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { BottomNavigation, BottomNavigationAction, Box } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import ViewListIcon from "@mui/icons-material/ViewList";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import TranslateIcon from "@mui/icons-material/Translate";
 
@@ -38,12 +37,6 @@ const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
           icon={<AddCircleOutlineIcon />}
           component={Link}
           to="/add-poop"
-        />
-        <BottomNavigationAction
-          value="/see-poops"
-          icon={<ViewListIcon />}
-          component={Link}
-          to="/see-poops"
         />
         <BottomNavigationAction
           value="/user"

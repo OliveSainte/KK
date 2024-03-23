@@ -34,7 +34,7 @@ const Home: React.FC = () => {
       }
     },
     {
-      staleTime: 120000,
+      staleTime: 60000,
     }
   );
   const [tabValue, setTabValue] = useState<number>(0); // State for controlling tabs

@@ -4,7 +4,6 @@ import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import Home from "./components/Home";
 import BottomNavigationBar from "./components/BottomBar";
 import PoopEntryForm from "./components/PoopEntryForm";
-import PoopEntries from "./components/PoopEntries";
 import LoginPage from "./components/Login";
 import UserPage from "./components/UserPage";
 import CreateProfilePage from "./components/CreateProfilePage"; // Import the CreateProfilePage component
@@ -66,7 +65,7 @@ function App() {
       }
     },
     {
-      staleTime: 120000,
+      staleTime: Infinity,
     }
   );
 
@@ -133,7 +132,6 @@ function App() {
                     element={<Navigator location={"/"} />}
                   />
                   <Route path="/add-poop" element={<PoopEntryForm />} />
-                  <Route path="/see-poops" element={<PoopEntries />} />
                   <Route path="/user" element={<UserPage />} />
                 </Routes>
                 <BottomNavigationBar

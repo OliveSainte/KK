@@ -1,13 +1,24 @@
-import { Typography, Button, Avatar } from "@mui/material";
+import {
+  Typography,
+  Button,
+  Avatar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from "@mui/material";
 import { getAuth, signOut } from "firebase/auth";
 import { useAuth } from "../App";
-import { Profile } from "../types/Profile";
 import { query, collection, where, getDocs } from "firebase/firestore";
 import { useQuery } from "react-query";
 import { firestore } from "../firebase";
+import { Profile } from "../types/Profile";
+import PoopEntries from "./PoopEntries";
+import { useState } from "react";
 
 const UserPage = () => {
   const { currentUser } = useAuth();
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const { data: profile } = useQuery<Profile | null | undefined>(
     ["profiles", currentUser?.uid],
     async () => {
@@ -35,7 +46,7 @@ const UserPage = () => {
       }
     },
     {
-      staleTime: 120000,
+      staleTime: Infinity,
     }
   );
 
@@ -47,27 +58,59 @@ const UserPage = () => {
       console.error("Error logging out:", error);
     }
   };
+  const openLogoutDialog = () => {
+    setLogoutDialogOpen(true);
+  };
+
+  const closeLogoutDialog = () => {
+    setLogoutDialogOpen(false);
+  };
+
+  const confirmLogout = () => {
+    handleLogout();
+    closeLogoutDialog();
+  };
 
   return (
-    <div style={{ marginBottom: "4rem", textAlign: "center" }}>
+    <div style={{ marginBottom: "4rem", width: "100%", marginTop: "1.5rem" }}>
       <Avatar
         alt={profile?.username}
-        src="/KK.svg"
+        src={profile?.profilePicUrl}
         style={{ width: "150px", height: "150px", margin: "auto" }}
       />
-      <Typography variant="h4" style={{ marginTop: "1rem" }}>
+      <Typography variant="h4" style={{ marginTop: "1rem" }} textAlign="center">
         {profile?.username}
       </Typography>
+      <div style={{ textAlign: "center" }}>
+        <Button
+          onClick={openLogoutDialog}
+          variant="outlined"
+          style={{ marginTop: "2rem", marginBottom: "2rem" }}
+          color="warning"
+        >
+          Logout
+        </Button>
+      </div>
 
-      <Button
-        onClick={handleLogout}
-        variant="outlined"
-        style={{ marginTop: "2rem" }}
-        fullWidth
-        color="primary"
-      >
-        Logout
-      </Button>
+      <PoopEntries />
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={logoutDialogOpen} onClose={closeLogoutDialog}>
+        <DialogTitle>Confirm Logout</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            Are you sure you want to log out?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeLogoutDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={confirmLogout} color="primary" autoFocus>
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

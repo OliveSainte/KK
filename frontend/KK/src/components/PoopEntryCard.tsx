@@ -66,7 +66,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
       }
     },
     {
-      staleTime: 120000,
+      staleTime: Infinity,
     }
   );
 
@@ -78,6 +78,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
         id: nanoid(),
         userId: currentUser?.uid || "",
         userName: profile?.username || "Anonymous",
+        userProfilePic: profile?.profilePicUrl ?? "/KK.svg",
         text: commentText,
         dateTime: Timestamp.now(),
       };
@@ -158,7 +159,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
             ></Chip>
           )}
         </Typography>
-        <Typography color="textSecondary" fontSize="small">
+        <Typography color="textSecondary" fontSize="small" marginLeft="2rem">
           {formatDateTime(entry.dateTime)}
         </Typography>
         {expandedComments && (

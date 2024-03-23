@@ -60,7 +60,7 @@ const PoopEntryForm: React.FC = () => {
       }
     },
     {
-      staleTime: 120000,
+      staleTime: Infinity,
     }
   );
 
@@ -130,6 +130,7 @@ const PoopEntryForm: React.FC = () => {
 
       const newComment: Comment = {
         id: nanoid(),
+        userProfilePic: profile?.profilePicUrl ?? "/KK.svg",
         userId: currentUser?.uid || "",
         userName: profile?.username || "Anonymous",
         text: comment,
@@ -153,6 +154,16 @@ const PoopEntryForm: React.FC = () => {
 
       await setDoc(doc(firestore, "poopEntries", newPoop.id), newPoop).then(
         () => {
+          // Update userPoopEntries and poopEntries data
+          queryClient.setQueryData<PoopEntry[]>(
+            "userPoopEntries",
+            (prevData) => [...(prevData || []), newPoop]
+          );
+
+          queryClient.setQueryData<PoopEntry[]>("poopEntries", (prevData) => [
+            ...(prevData || []),
+            newPoop,
+          ]);
           setShowSuccessToast(true);
           setTimeout(() => {
             queryClient.invalidateQueries("userPoopEntries");
