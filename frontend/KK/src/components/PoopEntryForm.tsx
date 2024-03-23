@@ -133,7 +133,7 @@ const PoopEntryForm: React.FC = () => {
         userProfilePic: profile?.profilePicUrl ?? "/KK.svg",
         userId: currentUser?.uid || "",
         userName: profile?.username || "Anonymous",
-        text: comment,
+        text: comment.trim(),
         dateTime: Timestamp.now(),
       };
 

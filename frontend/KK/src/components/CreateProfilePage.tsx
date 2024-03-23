@@ -45,7 +45,7 @@ const CreateProfilePage = () => {
 
     const profilePicUrl = await uploadProfilePic(profilePic);
     const newProfile: Profile = {
-      username: username,
+      username: username.trim(),
       id: currentUser.uid,
       profilePicUrl: profilePicUrl ?? "/KK.svg",
     };

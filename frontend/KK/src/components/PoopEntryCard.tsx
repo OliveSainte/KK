@@ -79,7 +79,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
         userId: currentUser?.uid || "",
         userName: profile?.username || "Anonymous",
         userProfilePic: profile?.profilePicUrl ?? "/KK.svg",
-        text: commentText,
+        text: commentText.trim(),
         dateTime: Timestamp.now(),
       };
       if (entryDocSnap.exists()) {
