@@ -48,6 +48,7 @@ const Home: React.FC = () => {
       ) : (
         <>
           <Tabs
+            sx={{ marginBottom: "1rem" }}
             variant="fullWidth"
             value={tabValue}
             onChange={(_, newValue) => setTabValue(newValue)}
