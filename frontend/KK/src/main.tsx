@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import { ThemeProvider } from "@emotion/react";
 import { createTheme } from "@mui/material";
 import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 // Create a dark mode theme
 const theme = createTheme({
@@ -25,16 +26,20 @@ const theme = createTheme({
     },
   },
   typography: {
-    // You can customize typography here if needed
+    fontFamily: "'Monospace', sans-serif",
   },
 });
 
+const queryClient = new QueryClient();
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
   </React.StrictMode>
 );

@@ -1,0 +1,11 @@
+{
+  "projects": {
+    "default": "kk-app-f632c"
+  },
+  "targets": {},
+  "etags": {
+    "kk-app-f632c": {
+      "extensionInstances": {}
+    }
+  }
+}

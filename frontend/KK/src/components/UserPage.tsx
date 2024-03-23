@@ -1,5 +1,4 @@
-import React from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Typography, Button } from "@mui/material";
 import { getAuth, signOut } from "firebase/auth";
 import { useAuth } from "../App";
 
@@ -15,14 +14,14 @@ const UserPage = () => {
   };
 
   return (
-    <Box>
+    <div style={{ marginBottom: "4rem" }}>
       <Typography variant="h4">User Information</Typography>
       <Typography variant="body1">Name: {currentUser?.displayName}</Typography>
       <Typography variant="body1">Email: {currentUser?.email}</Typography>
       <Button onClick={handleLogout} variant="contained" color="primary">
         Logout
       </Button>
-    </Box>
+    </div>
   );
 };
 
