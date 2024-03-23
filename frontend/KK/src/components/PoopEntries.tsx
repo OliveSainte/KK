@@ -45,7 +45,7 @@ const PoopEntries: React.FC = () => {
   );
 
   return (
-    <>
+    <div style={{ marginBottom: "4rem" }}>
       {isLoading ? ( // Show loading indicator
         <Grid container justifyContent="center">
           <CircularProgress />
@@ -73,7 +73,7 @@ const PoopEntries: React.FC = () => {
           )}
         </Grid>
       )}
-    </>
+    </div>
   );
 };
 

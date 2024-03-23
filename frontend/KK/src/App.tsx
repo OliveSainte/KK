@@ -72,7 +72,6 @@ function App() {
       <Box
         sx={{
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           minHeight: "90vh",

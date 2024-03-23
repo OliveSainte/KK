@@ -6,13 +6,14 @@ export interface PoopEntry {
   createdById: string;
   createdByName: string;
   dateTime: firebase.firestore.Timestamp;
-  type: string;
   consistency: string;
-  color: string;
+  location: string;
   notes: string;
   comments: Comment[];
-  atHome: boolean;
   rating: number;
+  isFire: boolean;
+  isIce: boolean;
+  size: string;
 }
 
 export interface Comment {
@@ -20,4 +21,5 @@ export interface Comment {
   userId: string; // ID of the user who posted the comment
   userName: string; // Name of the user who posted the comment
   text: string;
+  dateTime: firebase.firestore.Timestamp;
 }

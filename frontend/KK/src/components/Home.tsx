@@ -56,7 +56,7 @@ const Home: React.FC = () => {
             <Tab icon={<EmojiEventsIcon />} label="Champions" />
           </Tabs>
           {tabValue === 0 ? (
-            <div>
+            <div style={{ marginBottom: "4rem" }}>
               <Grid container spacing={2}>
                 {poopEntries?.map((entry) => (
                   <Grid key={entry.id} item xs={12} sm={6} md={4}>

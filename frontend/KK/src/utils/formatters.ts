@@ -6,13 +6,11 @@ export const formatDateTime = (
   if (!timestamp) return "";
   const date = timestamp.toDate(); // Convert Firestore Timestamp to Date
   return date.toLocaleString("en-US", {
-    weekday: "long",
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "numeric",
     second: "numeric",
-    timeZoneName: "short",
   });
 };

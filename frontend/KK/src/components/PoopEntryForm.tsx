@@ -5,12 +5,10 @@ import {
   Box,
   Snackbar,
   Typography,
-  MenuItem,
-  Checkbox,
-  FormControlLabel,
   Rating,
-  Stack,
   CircularProgress,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import { PoopEntry } from "../types/PoopEntry";
 import {
@@ -18,6 +16,7 @@ import {
   collection,
   doc,
   getDocs,
+  orderBy,
   query,
   setDoc,
   where,
@@ -26,30 +25,11 @@ import { firestore } from "../firebase";
 import { nanoid } from "nanoid";
 import { useAuth } from "../App";
 import { useQuery, useQueryClient } from "react-query";
-
-enum PoopType {
-  RabbitDrops = "Rabbit Drops",
-  Bonus = "Bonus",
-  Clean = "Clean",
-  Dirty = "Dirty",
-}
-
-// Enum for consistency
-enum PoopConsistency {
-  Hard = "Hard",
-  Soft = "Soft",
-  Watery = "Watery",
-}
-
-// Enum for color
-enum PoopColor {
-  Brown = "Brown",
-  Green = "Green",
-  Yellow = "Yellow",
-}
+import { useNavigate } from "react-router-dom";
 
 const PoopEntryForm: React.FC = () => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient(); // Access the query client
   const { isLoading, data: poopEntries } = useQuery<PoopEntry[], Error>(
     ["userPoopEntries", currentUser?.uid],
@@ -57,7 +37,8 @@ const PoopEntryForm: React.FC = () => {
       if (!currentUser) throw new Error("User not authenticated.");
       const userPoopsQuery = query(
         collection(firestore, "poopEntries"),
-        where("createdById", "==", currentUser.uid)
+        where("createdById", "==", currentUser.uid),
+        orderBy("dateTime", "desc")
       );
       const querySnapshot = await getDocs(userPoopsQuery);
       const entries: PoopEntry[] = [];
@@ -70,32 +51,63 @@ const PoopEntryForm: React.FC = () => {
       staleTime: 120000,
     }
   );
-  const [type, setType] = useState<PoopType | "">("");
-  const [consistency, setConsistency] = useState<PoopConsistency | "">("");
-  const [color, setColor] = useState<PoopColor | "">("");
+  const [size, setSize] = useState<"big" | "small" | "">("");
+  const [consistency, setConsistency] = useState<"soft" | "hard" | "">("");
   const [notes, setNotes] = useState("");
   const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [atHome, setAtHome] = useState(false);
+  const [location, setLocation] = useState<"home" | "away" | "">("");
   const [rating, setRating] = useState<number>(-1);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (rating === -1) return;
+    if (rating === -1 || location === "" || consistency === "" || size === "")
+      return;
     if (poopEntries) {
+      let isFire = false;
+      let isIce = false;
+
+      // Check if it's the third or more poop today
+      const todayEntries = poopEntries.filter((entry) => {
+        const entryDate = entry.dateTime.toDate();
+        const currentDate = new Date();
+        return (
+          entryDate.getDate() === currentDate.getDate() &&
+          entryDate.getMonth() === currentDate.getMonth() &&
+          entryDate.getFullYear() === currentDate.getFullYear()
+        );
+      });
+      if (todayEntries.length >= 3) {
+        isFire = true;
+      }
+
+      // Check if it's the first poop in more than 36 hours
+      if (poopEntries.length > 0) {
+        const lastPoopDate = poopEntries[0].dateTime.toDate();
+        const currentDate = new Date();
+        const hoursSinceLastPoop =
+          Math.abs(currentDate.getTime() - lastPoopDate.getTime()) /
+          (1000 * 60 * 60);
+        if (hoursSinceLastPoop > 36) {
+          isIce = true;
+        }
+      }
+
       const newPoop: PoopEntry = {
         id: nanoid(),
         number: poopEntries?.length + 1,
         createdById: currentUser?.uid as string,
         createdByName: currentUser?.displayName as string,
         dateTime: Timestamp.now(),
-        type,
+        size,
         consistency,
-        color,
         notes,
         comments: [],
-        atHome,
+        location,
         rating,
+        isFire,
+        isIce,
       };
+
       await setDoc(doc(firestore, "poopEntries", newPoop.id), newPoop).then(
         () => {
           setShowSuccessToast(true);
@@ -103,11 +115,12 @@ const PoopEntryForm: React.FC = () => {
             queryClient.invalidateQueries("userPoopEntries");
             queryClient.invalidateQueries("poopEntries");
             setShowSuccessToast(false);
+            navigate("/");
           }, 1000);
 
-          setType("");
+          setSize("");
+          setLocation("");
           setConsistency("");
-          setColor("");
           setNotes("");
           setRating(0);
         }
@@ -116,7 +129,7 @@ const PoopEntryForm: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ marginBottom: "4rem", textAlign: "center" }}>
       {isLoading ? (
         <CircularProgress />
       ) : (
@@ -134,71 +147,50 @@ const PoopEntryForm: React.FC = () => {
             <Typography variant="h4" gutterBottom align="center">
               Pooped?
             </Typography>
-            <Stack direction="row">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={atHome}
-                    onChange={(e) => setAtHome(e.target.checked)}
-                  />
-                }
-                label="At Home"
-              />
-              <Rating
-                name="rating"
-                value={rating}
-                onChange={(_, newValue) => setRating(newValue as number)}
-                precision={0.5} // Allow half-star ratings
-                size="large" // Set the size of the stars
-              />
-            </Stack>
-            <TextField
-              required
-              select
-              label="Type"
-              value={type}
-              onChange={(e) => setType(e.target.value as PoopType)}
+
+            <ToggleButtonGroup
+              value={location}
+              exclusive
+              onChange={(_, newValue) => setLocation(newValue)}
+              aria-label="Location"
               fullWidth
-              margin="normal"
+              style={{ marginTop: "16px" }}
+              color="warning" // Change color to primary
             >
-              {Object.values(PoopType).map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              required
-              select
-              label="Consistency"
+              <ToggleButton value="home">Home</ToggleButton>
+              <ToggleButton value="away">Away</ToggleButton>
+            </ToggleButtonGroup>
+
+            <ToggleButtonGroup
+              value={size}
+              exclusive
+              onChange={(_, newValue) => setSize(newValue)}
+              aria-label="Poop Size"
+              fullWidth
+              style={{ marginTop: "16px", marginBottom: "8px" }}
+              color="primary" // Change color to primary
+            >
+              <ToggleButton value="big">Big</ToggleButton>
+              <ToggleButton value="small">Small</ToggleButton>
+            </ToggleButtonGroup>
+            <ToggleButtonGroup
               value={consistency}
-              onChange={(e) =>
-                setConsistency(e.target.value as PoopConsistency)
-              }
+              exclusive
+              onChange={(_, newValue) => setConsistency(newValue)}
+              aria-label="Poop Consistency"
               fullWidth
-              margin="normal"
+              style={{ marginBottom: "16px", marginTop: "8px" }}
+              color="secondary" // Change color to secondary
             >
-              {Object.values(PoopConsistency).map((consistency) => (
-                <MenuItem key={consistency} value={consistency}>
-                  {consistency}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              required
-              select
-              label="Color"
-              value={color}
-              onChange={(e) => setColor(e.target.value as PoopColor)}
-              fullWidth
-              margin="normal"
-            >
-              {Object.values(PoopColor).map((color) => (
-                <MenuItem key={color} value={color}>
-                  {color}
-                </MenuItem>
-              ))}
-            </TextField>
+              <ToggleButton value="hard">Hard</ToggleButton>
+              <ToggleButton value="soft">Soft</ToggleButton>
+            </ToggleButtonGroup>
+            <Rating
+              name="rating"
+              value={rating}
+              onChange={(_, newValue) => setRating(newValue as number)}
+              size="large" // Set the size of the stars
+            />
             <TextField
               label="Notes"
               value={notes}
@@ -206,7 +198,8 @@ const PoopEntryForm: React.FC = () => {
               fullWidth
               margin="normal"
               multiline
-              rows={4}
+              rows={2}
+              style={{ marginTop: "8px" }}
             />
             <Box mt={2}>
               <Button
@@ -224,6 +217,7 @@ const PoopEntryForm: React.FC = () => {
             autoHideDuration={3000}
             onClose={() => setShowSuccessToast(false)}
             message="Poop successfully added!"
+            style={{ marginTop: "8px" }}
           />
         </Box>
       )}

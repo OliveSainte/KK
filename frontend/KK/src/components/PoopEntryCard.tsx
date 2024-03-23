@@ -8,14 +8,16 @@ import {
   Button,
   Rating,
   Chip,
+  Stack,
 } from "@mui/material";
 import { PoopEntry, Comment } from "../types/PoopEntry";
-import { updateDoc, doc, getDoc } from "firebase/firestore";
+import { updateDoc, doc, getDoc, Timestamp } from "firebase/firestore";
 import { firestore } from "../firebase";
 import { formatDateTime } from "../utils/formatters";
 import { useAuth } from "../App";
 import { nanoid } from "nanoid";
 import { useQueryClient } from "react-query";
+import CommentSection from "./CommentSection";
 
 interface PoopEntryProps {
   entry: PoopEntry;
@@ -37,6 +39,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
         userId: currentUser?.uid || "",
         userName: currentUser?.displayName || "Anonymous",
         text: commentText,
+        dateTime: Timestamp.now(),
       };
       if (entryDocSnap.exists()) {
         const currentComments = entryDocSnap.data()?.comments || [];
@@ -91,19 +94,19 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
   return (
     <Card onClick={toggleComments} style={{ cursor: "pointer" }}>
       <CardContent>
-        <Typography variant="subtitle2" component="div">
+        <Typography variant="h6" component="div">
           <Chip
             label={entry.number}
             size="small"
             sx={{ marginRight: "0.5rem" }}
           />
-          {entry.createdByName} {entry.atHome ? "HOME" : "AWAY"}
+          {entry.createdByName} {entry.isFire ? "🔥" : ""}{" "}
+          {entry.isIce ? "❄️" : ""}
           <Rating
             disabled
             sx={{ marginLeft: "1rem" }}
             name="rating"
             value={entry.rating}
-            precision={0.5}
             size="small"
           />
           {entry.comments?.length > 0 && (
@@ -115,31 +118,31 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
             ></Chip>
           )}
         </Typography>
-
+        <Typography color="textSecondary" fontSize="small">
+          {formatDateTime(entry.dateTime)}
+        </Typography>
         {expandedComments && (
           <div>
-            <Divider />
-
-            <Typography>
-              {entry.color}-{entry.consistency}-{entry.type}
-            </Typography>
-            <Typography color="textSecondary" gutterBottom>
-              {formatDateTime(entry.dateTime)}
-            </Typography>
+            <Divider sx={{ marginTop: "0.5rem", marginBottom: "0.5rem" }} />
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              marginY="1rem"
+            >
+              <Chip color="warning" variant="outlined" label={entry.location} />
+              <Chip color="primary" variant="outlined" label={entry.size} />
+              <Chip
+                color="secondary"
+                variant="outlined"
+                label={entry.consistency}
+              />
+            </Stack>
             {entry.notes && (
               <Typography variant="body1">
                 Notes: {entry.notes || "Unset"}
               </Typography>
             )}
-            {entry.comments &&
-              entry.comments.map((comment: Comment) => (
-                <div key={comment.id}>
-                  <Typography variant="body2">
-                    <strong>{comment.userName}: </strong>
-                    {comment.text}
-                  </Typography>
-                </div>
-              ))}
+            {entry.comments && <CommentSection comments={entry.comments} />}
             <TextField
               onClick={(e) => e.stopPropagation()}
               label="Add a comment"
