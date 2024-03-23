@@ -11,6 +11,7 @@ import {
   TableCell,
   TableBody,
   Chip,
+  Stack,
 } from "@mui/material";
 import { formatDateTime } from "../utils/formatters";
 import { useQuery } from "react-query";
@@ -24,6 +25,8 @@ import {
   getUserStatsThisMonth,
 } from "../utils/statsComputers";
 import { isToday } from "../utils/checkers";
+import { brown } from "../../public/colors";
+import { MilitaryTech } from "@mui/icons-material";
 
 const PoopStats: React.FC = () => {
   const { currentUser } = useAuth();
@@ -56,18 +59,13 @@ const PoopStats: React.FC = () => {
   );
 
   // Get the most recent 3 entries
-  const recentEntries = poopEntries.slice(0, 3).map((entry) => {
+  const recentEntries = poopEntries.slice(0, 5).map((entry) => {
     return {
       user: entry.createdByName,
       dateTime: formatDateTime(entry.dateTime),
       number: entry.number,
     };
   });
-
-  // Calculate total entries and average poops per user
-  const totalEntries = poopEntries.length || 0;
-  const userCount = Object.keys(calculateLeaderboard(poopEntries)).length;
-  const averagePoopsPerUser = userCount !== 0 ? totalEntries / userCount : 0;
 
   const computeMyAverage = useMemo(() => {
     const now = new Date();
@@ -86,6 +84,22 @@ const PoopStats: React.FC = () => {
     [poopEntries]
   );
 
+  const averagePoopsPerUserThisMonth = useMemo(() => {
+    const totalPoopsThisMonth = Object.values(userStatsThisMonth).reduce(
+      (acc, userStat) => acc + userStat.count,
+      0
+    );
+    const userCountThisMonth = Object.keys(userStatsThisMonth).length;
+    return userCountThisMonth !== 0
+      ? totalPoopsThisMonth / userCountThisMonth
+      : 0;
+  }, [userStatsThisMonth]);
+
+  // Calculate total entries and average poops per user
+  const totalEntries = poopEntries.length || 0;
+  const userCount = Object.keys(calculateLeaderboard(poopEntries)).length;
+  const averagePoopsPerUser = userCount !== 0 ? totalEntries / userCount : 0;
+
   const getTodaysStats = () => {
     if (leaderboard) {
       const leaderCopy = [...leaderboard];
@@ -103,12 +117,45 @@ const PoopStats: React.FC = () => {
     } else return [];
   };
   const todaysStats = useMemo(() => getTodaysStats(), []);
+
   return (
     <div style={{ marginBottom: "4rem" }}>
       {isLoading ? (
         <CircularProgress />
       ) : (
         <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Paper
+              elevation={6}
+              style={{
+                padding: 20,
+                borderLeft: `6px solid ${brown}`,
+              }}
+            >
+              <Typography
+                variant="h6"
+                gutterBottom
+                style={{ marginBottom: "1rem" }}
+              >
+                This month you pooped
+                <Chip
+                  variant="outlined"
+                  label={`${computeMyAverage.toFixed(2)}`}
+                  style={{
+                    marginLeft: "0.5rem",
+                    borderColor: brown,
+                  }}
+                />{" "}
+                each day.
+              </Typography>
+              <Typography variant="body1">
+                {computeMyAverage < 1
+                  ? " Make sure you stay hydrated!"
+                  : "Keep going!"}
+              </Typography>
+            </Paper>
+          </Grid>
+
           <Grid item xs={12} sm={6}>
             <Paper elevation={3} style={{ padding: 20 }}>
               <Typography variant="h6" gutterBottom>
@@ -146,7 +193,7 @@ const PoopStats: React.FC = () => {
               </TableContainer>
             </Paper>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={12} sm={6}>
             <Paper elevation={3} style={{ padding: 20 }}>
               <Typography variant="h6" gutterBottom>
                 Latest
@@ -174,7 +221,14 @@ const PoopStats: React.FC = () => {
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Paper elevation={3} style={{ padding: 20 }}>
+            <Paper
+              elevation={3}
+              style={{
+                paddingLeft: 20,
+                paddingRight: 20,
+                paddingTop: 20,
+              }}
+            >
               <Typography variant="h6" gutterBottom>
                 This Month
               </Typography>
@@ -204,16 +258,32 @@ const PoopStats: React.FC = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+              <Stack direction="row" justifyContent="end">
+                <Chip
+                  sx={{ margin: "1rem" }}
+                  variant="outlined"
+                  label={`${averagePoopsPerUserThisMonth.toFixed(2)} / user`}
+                />
+              </Stack>
             </Paper>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item xs={12} sm={6}>
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
                   <TableRow>
                     <TableCell>
-                      <Typography variant="h6">All Time</Typography>
+                      <Typography variant="h6">
+                        All Time
+                        <MilitaryTech
+                          fontSize="small"
+                          style={{
+                            verticalAlign: "middle",
+                            marginRight: "0.5rem",
+                          }}
+                        />
+                      </Typography>
                     </TableCell>
                     <TableCell align="right">Poops</TableCell>
                     <TableCell align="right">Trend</TableCell>
@@ -241,28 +311,19 @@ const PoopStats: React.FC = () => {
                   ))}
                 </TableBody>
               </Table>
+              <Stack direction="row" justifyContent="end">
+                <Chip
+                  sx={{ margin: "1rem" }}
+                  variant="outlined"
+                  label={`${totalEntries} total`}
+                />
+                <Chip
+                  sx={{ margin: "1rem" }}
+                  variant="outlined"
+                  label={`${averagePoopsPerUser.toFixed(2)} / user`}
+                />
+              </Stack>
             </TableContainer>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <Paper elevation={3} style={{ padding: 20 }}>
-              <Typography variant="h6" gutterBottom>
-                Total Entries
-              </Typography>
-              <Typography variant="body1">{totalEntries}</Typography>
-              <Typography variant="h6" gutterBottom>
-                Average Poops Per User
-              </Typography>
-              <Typography variant="body1">
-                {averagePoopsPerUser.toFixed(2)}
-              </Typography>
-              <Typography variant="h6" gutterBottom>
-                My Monthly Average
-              </Typography>
-              <Typography variant="body1">
-                {computeMyAverage.toFixed(2)}
-              </Typography>
-            </Paper>
           </Grid>
         </Grid>
       )}

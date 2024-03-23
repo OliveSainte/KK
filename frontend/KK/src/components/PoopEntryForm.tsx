@@ -10,7 +10,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
-import { PoopEntry } from "../types/PoopEntry";
+import { Comment, PoopEntry } from "../types/PoopEntry";
 import {
   Timestamp,
   collection,
@@ -53,15 +53,18 @@ const PoopEntryForm: React.FC = () => {
   );
   const [size, setSize] = useState<"big" | "small" | "">("");
   const [consistency, setConsistency] = useState<"soft" | "hard" | "">("");
-  const [notes, setNotes] = useState("");
+  const [comment, setComment] = useState("");
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [location, setLocation] = useState<"home" | "away" | "">("");
   const [rating, setRating] = useState<number>(-1);
 
+  const isSubmitPoopDisabled = (): boolean => {
+    return !location || !size || !consistency || rating === -1;
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (rating === -1 || location === "" || consistency === "" || size === "")
-      return;
+    if (isSubmitPoopDisabled()) return;
     if (poopEntries) {
       let isFire = false;
       let isIce = false;
@@ -92,6 +95,14 @@ const PoopEntryForm: React.FC = () => {
         }
       }
 
+      const newComment: Comment = {
+        id: nanoid(),
+        userId: currentUser?.uid || "",
+        userName: currentUser?.displayName || "Anonymous",
+        text: comment,
+        dateTime: Timestamp.now(),
+      };
+
       const newPoop: PoopEntry = {
         id: nanoid(),
         number: poopEntries?.length + 1,
@@ -100,8 +111,7 @@ const PoopEntryForm: React.FC = () => {
         dateTime: Timestamp.now(),
         size,
         consistency,
-        notes,
-        comments: [],
+        comments: !comment ? [] : [newComment],
         location,
         rating,
         isFire,
@@ -121,7 +131,7 @@ const PoopEntryForm: React.FC = () => {
           setSize("");
           setLocation("");
           setConsistency("");
-          setNotes("");
+          setComment("");
           setRating(0);
         }
       );
@@ -186,15 +196,17 @@ const PoopEntryForm: React.FC = () => {
               <ToggleButton value="soft">Soft</ToggleButton>
             </ToggleButtonGroup>
             <Rating
+              sx={{ margin: "2rem" }}
               name="rating"
               value={rating}
               onChange={(_, newValue) => setRating(newValue as number)}
               size="large" // Set the size of the stars
             />
             <TextField
-              label="Notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              inputProps={{ maxLength: 30 }}
+              label="Comment"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
               fullWidth
               margin="normal"
               multiline
@@ -203,12 +215,13 @@ const PoopEntryForm: React.FC = () => {
             />
             <Box mt={2}>
               <Button
+                disabled={isSubmitPoopDisabled()}
                 fullWidth
-                variant="contained"
+                variant="outlined"
                 color="primary"
                 type="submit"
               >
-                Add Entry
+                I Pooped!
               </Button>
             </Box>
           </form>

@@ -8,7 +8,6 @@ export interface PoopEntry {
   dateTime: firebase.firestore.Timestamp;
   consistency: string;
   location: string;
-  notes: string;
   comments: Comment[];
   rating: number;
   isFire: boolean;

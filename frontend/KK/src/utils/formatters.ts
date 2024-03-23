@@ -12,5 +12,6 @@ export const formatDateTime = (
     hour: "numeric",
     minute: "numeric",
     second: "numeric",
+    hour12: false, // Display in 24-hour format
   });
 };

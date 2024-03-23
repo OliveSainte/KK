@@ -30,7 +30,6 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
   const [expandedComments, setExpandedComments] = useState<boolean>(false);
 
   const handleCommentSubmit = async () => {
-    if (commentText.length >= 50) return;
     try {
       const entryDocRef = doc(firestore, "poopEntries", entry.id);
       const entryDocSnap = await getDoc(entryDocRef);
@@ -94,7 +93,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
   return (
     <Card onClick={toggleComments} style={{ cursor: "pointer" }}>
       <CardContent>
-        <Typography variant="h6" component="div">
+        <Typography variant="body1" component="div">
           <Chip
             label={entry.number}
             size="small"
@@ -124,6 +123,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
         {expandedComments && (
           <div>
             <Divider sx={{ marginTop: "0.5rem", marginBottom: "0.5rem" }} />
+
             <Stack
               direction="row"
               justifyContent="space-between"
@@ -137,16 +137,12 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
                 label={entry.consistency}
               />
             </Stack>
-            {entry.notes && (
-              <Typography variant="body1">
-                Notes: {entry.notes || "Unset"}
-              </Typography>
-            )}
+
             {entry.comments && <CommentSection comments={entry.comments} />}
             <TextField
               onClick={(e) => e.stopPropagation()}
               label="Add a comment"
-              inputProps={{ maxLength: 40 }}
+              inputProps={{ maxLength: 30 }}
               variant="outlined"
               fullWidth
               value={commentText}
@@ -154,6 +150,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
               style={{ marginTop: "16px" }}
             />
             <Button
+              disabled={commentText.length <= 0}
               fullWidth
               color="primary"
               onClick={(e) => {
