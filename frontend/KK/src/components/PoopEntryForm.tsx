@@ -266,7 +266,7 @@ const PoopEntryForm: React.FC = () => {
               size="large" // Set the size of the stars
             />
             <TextField
-              inputProps={{ maxLength: 30 }}
+              inputProps={{ maxLength: 20 }}
               label="Comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}

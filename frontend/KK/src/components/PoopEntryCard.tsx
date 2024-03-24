@@ -194,7 +194,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
           <TextField
             onClick={(e) => e.stopPropagation()}
             label="Add a comment"
-            inputProps={{ maxLength: 30 }}
+            inputProps={{ maxLength: 20 }}
             variant="outlined"
             fullWidth
             value={commentText}

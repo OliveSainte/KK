@@ -11,8 +11,6 @@ import "../styles/styles..css";
 import { brown } from "../../public/colors";
 
 const MapPage = () => {
-  const [poopsThisMonth, setPoopsThisMonth] = useState<number>(0);
-  const [poopsThisYear, setPoopsThisYear] = useState<number>(0);
   const [homePoops, setHomePoops] = useState<number>(0);
   const [awayPoops, setAwayPoops] = useState<number>(0);
   const [positions, setPositions] = useState<PoopEntry[]>([]);
@@ -53,25 +51,13 @@ const MapPage = () => {
 
     const pos: PoopEntry[] = [];
 
-    let monthTotal = 0;
-    let yearTotal = 0;
     let homeCount = 0;
     let awayCount = 0;
 
     poopEntries.forEach((entry) => {
       if (entry.geoPoint !== undefined) {
         pos.push(entry);
-        const entryDate = new Date(entry.dateTime.toDate());
-        const currentDate = new Date();
-        if (
-          entryDate.getMonth() === currentDate.getMonth() &&
-          entryDate.getFullYear() === currentDate.getFullYear()
-        ) {
-          monthTotal++;
-        }
-        if (entryDate.getFullYear() === currentDate.getFullYear()) {
-          yearTotal++;
-        }
+
         if (entry.location === "home") {
           homeCount++;
         } else {
@@ -94,8 +80,6 @@ const MapPage = () => {
     ]);
 
     setPositions(pos);
-    setPoopsThisMonth(monthTotal);
-    setPoopsThisYear(yearTotal);
     setHomePoops(homeCount);
     setAwayPoops(awayCount);
   }, [poopEntries, isLoading]);
@@ -111,14 +95,29 @@ const MapPage = () => {
   };
 
   return (
-    <div style={{ height: "85vh", width: "100%" }}>
+    <div style={{ height: "97.7vh", width: "100%" }}>
       <MapContainer
         zoomControl={false} // Add this line to remove zoom buttons
         center={initialPosition}
-        zoom={17}
-        style={{ height: "75vh", width: "100%", marginTop: "-1.5rem" }}
+        zoom={17} // Adjust initial zoom level as needed
+        style={{
+          height: "100%",
+          width: "100%",
+          zIndex: 1,
+        }}
       >
-        <div className="map-title">Drop offs</div>
+        <div className="map-title">
+          KKs
+          <Stack direction="column">
+            <Chip
+              variant="outlined"
+              style={{
+                borderColor: brown,
+              }}
+              label={`${homePoops} home vs ${awayPoops} away`}
+            />
+          </Stack>
+        </div>
 
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {positions.map((position, index) => (
@@ -136,34 +135,6 @@ const MapPage = () => {
           </Marker>
         ))}
       </MapContainer>
-      <Stack
-        direction="row"
-        justifyContent="center"
-        marginTop="0.5rem"
-        spacing={1}
-      >
-        <Chip
-          variant="outlined"
-          style={{
-            borderColor: brown,
-          }}
-          label={`${poopsThisMonth} this month`}
-        />
-        <Chip
-          variant="outlined"
-          style={{
-            borderColor: brown,
-          }}
-          label={`${poopsThisYear} this year`}
-        />
-        <Chip
-          variant="outlined"
-          style={{
-            borderColor: brown,
-          }}
-          label={`${homePoops} home vs ${awayPoops} away`}
-        />
-      </Stack>
     </div>
   );
 };

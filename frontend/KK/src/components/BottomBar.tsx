@@ -24,7 +24,7 @@ const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
           left: 0,
           right: 0,
           zIndex: 99,
-          backgroundColor: "#171717",
+          backgroundColor: "rgba(23, 23, 23, 0.8)",
         }}
       >
         <BottomNavigationAction
