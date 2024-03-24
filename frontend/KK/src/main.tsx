@@ -6,6 +6,7 @@ import { createTheme } from "@mui/material";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { brown } from "../public/colors.ts";
+import "leaflet/dist/leaflet.css"; // Import Leaflet CSS stylesheet
 
 // Create a dark mode theme
 const theme = createTheme({

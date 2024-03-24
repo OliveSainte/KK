@@ -173,6 +173,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
       {expandedComments && (
         <CardContent>
           <Stack
+            display="flex"
             direction="row"
             justifyContent="space-between"
             marginBottom="1rem"

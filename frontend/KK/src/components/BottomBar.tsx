@@ -5,6 +5,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import TranslateIcon from "@mui/icons-material/Translate";
+import PinDropIcon from "@mui/icons-material/PinDrop";
 
 type Props = {
   currentRoute: string;
@@ -24,6 +25,12 @@ const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
           icon={<HomeIcon />}
           component={Link}
           to="/"
+        />
+        <BottomNavigationAction
+          value="/map"
+          icon={<PinDropIcon />}
+          component={Link}
+          to="/map"
         />
         <BottomNavigationAction
           value="/add-poop"

@@ -19,6 +19,7 @@ import { Profile } from "./types/Profile";
 import { firestore } from "./firebase";
 import { useQuery } from "react-query";
 import Navigator from "./components/Navigator";
+import MapPage from "./components/Map";
 
 // Create AuthContext inline
 const AuthContext = createContext<{ currentUser: User | null }>({
@@ -133,6 +134,7 @@ function App() {
                     element={<Navigator location={"/"} />}
                   />
                   <Route path="/add-poop" element={<PoopEntryForm />} />
+                  <Route path="/map" element={<MapPage />} />
                   <Route path="/user" element={<UserPage />} />
                 </Routes>
                 <BottomNavigationBar

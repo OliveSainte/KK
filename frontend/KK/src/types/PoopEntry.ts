@@ -1,4 +1,5 @@
 import firebase from "firebase/compat/app";
+import { GeoPoint } from "firebase/firestore";
 
 export interface PoopEntry {
   id: string;
@@ -14,6 +15,7 @@ export interface PoopEntry {
   isFire: boolean;
   isIce: boolean;
   size: string;
+  geoPoint?: GeoPoint;
 }
 
 export interface Comment {
@@ -23,4 +25,5 @@ export interface Comment {
   userName: string; // Name of the user who posted the comment
   text: string;
   dateTime: firebase.firestore.Timestamp;
+  geoPoint?: GeoPoint;
 }
