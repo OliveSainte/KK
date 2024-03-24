@@ -53,8 +53,8 @@ const Home: React.FC = () => {
             value={tabValue}
             onChange={(_, newValue) => setTabValue(newValue)}
           >
-            <Tab icon={<DynamicFeedIcon />} label="Feed" />
-            <Tab icon={<EmojiEventsIcon />} label="Champions" />
+            <Tab icon={<DynamicFeedIcon />} label="" />
+            <Tab icon={<EmojiEventsIcon />} label="" />
           </Tabs>
           {tabValue === 0 ? (
             <div style={{ marginBottom: "4rem" }}>

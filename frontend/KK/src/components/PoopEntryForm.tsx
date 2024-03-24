@@ -142,6 +142,7 @@ const PoopEntryForm: React.FC = () => {
         number: poopEntries?.length + 1,
         createdById: currentUser?.uid as string,
         createdByName: profile?.username as string,
+        userProfilePic: profile?.profilePicUrl as string,
         dateTime: Timestamp.now(),
         size,
         consistency,
@@ -157,12 +158,12 @@ const PoopEntryForm: React.FC = () => {
           // Update userPoopEntries and poopEntries data
           queryClient.setQueryData<PoopEntry[]>(
             "userPoopEntries",
-            (prevData) => [...(prevData || []), newPoop]
+            (prevData) => [newPoop, ...(prevData || [])]
           );
 
           queryClient.setQueryData<PoopEntry[]>("poopEntries", (prevData) => [
-            ...(prevData || []),
             newPoop,
+            ...(prevData || []),
           ]);
           setShowSuccessToast(true);
           setTimeout(() => {
@@ -254,7 +255,6 @@ const PoopEntryForm: React.FC = () => {
               fullWidth
               margin="normal"
               multiline
-              rows={2}
               style={{ marginTop: "8px" }}
             />
             <Box mt={2}>

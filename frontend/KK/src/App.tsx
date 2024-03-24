@@ -75,6 +75,7 @@ function App() {
         setCurrentUser(user);
       } else {
         setCurrentUser(null);
+        setLoading(false);
       }
     });
 

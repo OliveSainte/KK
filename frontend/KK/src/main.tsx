@@ -26,7 +26,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: "'Monospace', sans-serif",
+    fontFamily: "'Open Sans', sans-serif",
   },
 });
 

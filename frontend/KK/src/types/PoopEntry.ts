@@ -5,6 +5,7 @@ export interface PoopEntry {
   number: number;
   createdById: string;
   createdByName: string;
+  userProfilePic: string;
   dateTime: firebase.firestore.Timestamp;
   consistency: string;
   location: string;

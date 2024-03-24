@@ -59,7 +59,7 @@ const PoopStats: React.FC = () => {
   );
 
   // Get the most recent 3 entries
-  const recentEntries = poopEntries.slice(0, 5).map((entry) => {
+  const recentEntries = poopEntries.slice(0, 3).map((entry) => {
     return {
       user: entry.createdByName,
       dateTime: formatDateTime(entry.dateTime),
