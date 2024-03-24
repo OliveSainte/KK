@@ -1,7 +1,6 @@
 import { Button, Card, CardContent, Grid, Avatar, Box } from "@mui/material";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "../firebase";
-import { userRepository } from "../repo/UserRepo";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
@@ -9,10 +8,8 @@ const LoginPage = () => {
   const provider = new GoogleAuthProvider();
 
   const handleGoogleLogin = async () => {
-    await signInWithPopup(auth, provider).then(async (result) => {
-      const user = result.user;
-
-      await userRepository.saveUser(user).then(() => navigate("/"));
+    await signInWithPopup(auth, provider).then(() => {
+      navigate("/");
     });
   };
 

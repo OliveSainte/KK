@@ -3,21 +3,34 @@ import {
   Card,
   CardContent,
   Typography,
-  Divider,
   TextField,
   Button,
   Rating,
   Chip,
   Stack,
+  CardHeader,
+  Avatar,
+  Badge,
 } from "@mui/material";
 import { PoopEntry, Comment } from "../types/PoopEntry";
-import { updateDoc, doc, getDoc, Timestamp } from "firebase/firestore";
+import {
+  updateDoc,
+  doc,
+  getDoc,
+  Timestamp,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { firestore } from "../firebase";
 import { formatDateTime } from "../utils/formatters";
 import { useAuth } from "../App";
 import { nanoid } from "nanoid";
-import { useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import CommentSection from "./CommentSection";
+import { Profile } from "../types/Profile";
+import { brown } from "../../public/colors";
 
 interface PoopEntryProps {
   entry: PoopEntry;
@@ -29,6 +42,37 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
   const [commentText, setCommentText] = useState<string>("");
   const [expandedComments, setExpandedComments] = useState<boolean>(false);
 
+  const { data: profile } = useQuery<Profile | null | undefined>(
+    ["profiles", currentUser?.uid],
+    async () => {
+      if (currentUser) {
+        try {
+          const userPoopsQuery = query(
+            collection(firestore, "profiles"),
+            where("id", "==", currentUser?.uid)
+          );
+          const querySnapshot = await getDocs(userPoopsQuery);
+          const entries: Profile[] = [];
+          querySnapshot.forEach((doc) => {
+            entries.push({ id: doc.id, ...doc.data() } as Profile);
+          });
+          // Check if user has a profile, if not, navigate to create profile page
+          if (entries.length === 0) {
+            return null;
+          } else {
+            return entries[0];
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+          return null;
+        }
+      }
+    },
+    {
+      staleTime: Infinity,
+    }
+  );
+
   const handleCommentSubmit = async () => {
     try {
       const entryDocRef = doc(firestore, "poopEntries", entry.id);
@@ -36,8 +80,9 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
       const newComment: Comment = {
         id: nanoid(),
         userId: currentUser?.uid || "",
-        userName: currentUser?.displayName || "Anonymous",
-        text: commentText,
+        userName: profile?.username || "Anonymous",
+        userProfilePic: profile?.profilePicUrl ?? "/KK.svg",
+        text: commentText.trim(),
         dateTime: Timestamp.now(),
       };
       if (entryDocSnap.exists()) {
@@ -85,85 +130,89 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
   };
 
   const formatCommentCount = (count: number): string => {
-    if (count === 0) return "0";
+    if (count === 0) return "";
     else if (count <= 5) return `${count}`;
     else return `${5}+`;
   };
 
   return (
-    <Card onClick={toggleComments} style={{ cursor: "pointer" }}>
-      <CardContent>
-        <Typography variant="body1" component="div">
-          <Chip
-            label={entry.number}
-            size="small"
-            sx={{ marginRight: "0.5rem" }}
-          />
-          {entry.createdByName} {entry.isFire ? "🔥" : ""}{" "}
-          {entry.isIce ? "❄️" : ""}
-          <Rating
-            disabled
-            sx={{ marginLeft: "1rem" }}
-            name="rating"
-            value={entry.rating}
-            size="small"
-          />
-          {entry.comments?.length > 0 && (
+    <Card
+      onClick={toggleComments}
+      sx={{ cursor: "pointer", borderLeft: `6px solid ${brown}` }}
+    >
+      <CardHeader
+        avatar={
+          <Badge
+            badgeContent={entry.number} // Display the poop number as badge content
+            anchorOrigin={{ vertical: "top", horizontal: "left" }} // Adjust badge position
+          >
+            <Avatar src={entry.userProfilePic} />
+          </Badge>
+        }
+        title={
+          <>
+            <Typography variant="body1" component="div">
+              {entry.createdByName}
+              {entry.isFire ? "🔥" : ""} {entry.isIce ? "❄️" : ""}
+              {entry.comments.length > 0 && (
+                <Chip
+                  size="small"
+                  sx={{ float: "right" }}
+                  label={formatCommentCount(entry.comments.length)}
+                />
+              )}
+            </Typography>
+          </>
+        }
+        subheader={
+          <Typography color="textSecondary" fontSize="small">
+            {formatDateTime(entry.dateTime)}
+          </Typography>
+        }
+      />
+      {expandedComments && (
+        <CardContent>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            marginBottom="1rem"
+            alignContent="center"
+          >
+            <Chip color="warning" variant="outlined" label={entry.location} />
+            <Chip color="info" variant="outlined" label={entry.size} />
             <Chip
-              size="small"
-              color="primary"
-              sx={{ float: "right" }}
-              label={formatCommentCount(entry.comments.length)}
-            ></Chip>
-          )}
-        </Typography>
-        <Typography color="textSecondary" fontSize="small">
-          {formatDateTime(entry.dateTime)}
-        </Typography>
-        {expandedComments && (
-          <div>
-            <Divider sx={{ marginTop: "0.5rem", marginBottom: "0.5rem" }} />
-
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              marginY="1rem"
-            >
-              <Chip color="warning" variant="outlined" label={entry.location} />
-              <Chip color="primary" variant="outlined" label={entry.size} />
-              <Chip
-                color="secondary"
-                variant="outlined"
-                label={entry.consistency}
-              />
-            </Stack>
-
-            {entry.comments && <CommentSection comments={entry.comments} />}
-            <TextField
-              onClick={(e) => e.stopPropagation()}
-              label="Add a comment"
-              inputProps={{ maxLength: 30 }}
+              color="secondary"
               variant="outlined"
-              fullWidth
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              style={{ marginTop: "16px" }}
+              label={entry.consistency}
             />
-            <Button
-              disabled={commentText.length <= 0}
-              fullWidth
-              color="primary"
-              onClick={(e) => {
-                handleCommentSubmit();
-                e.stopPropagation();
-              }}
-              style={{ marginTop: "8px" }}
-            >
-              Comment
-            </Button>
-          </div>
-        )}
-      </CardContent>
+            <Rating disabled name="rating" value={entry.rating} size="small" />
+          </Stack>
+
+          {entry.comments && <CommentSection comments={entry.comments} />}
+          <TextField
+            onClick={(e) => e.stopPropagation()}
+            label="Add a comment"
+            inputProps={{ maxLength: 30 }}
+            variant="outlined"
+            fullWidth
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            style={{ marginTop: "16px" }}
+          />
+          <Button
+            disabled={commentText.length <= 0}
+            fullWidth
+            color="primary"
+            onClick={(e) => {
+              handleCommentSubmit();
+              e.stopPropagation();
+            }}
+            style={{ marginTop: "8px" }}
+          >
+            Comment
+          </Button>
+        </CardContent>
+      )}
     </Card>
   );
 };

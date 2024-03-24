@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { BottomNavigation, BottomNavigationAction, Box } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import ViewListIcon from "@mui/icons-material/ViewList";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import TranslateIcon from "@mui/icons-material/Translate";
 
@@ -16,16 +15,9 @@ type Props = {
 const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
   return (
     <>
-      {/* Main content container */}
-      <div style={{ paddingBottom: "56px" }}>
-        {/* Add 56px padding to the bottom to accommodate the BottomNavigation bar */}
-        {/* Adjust the value as needed based on the BottomNavigation height */}
-        {/* Content goes here */}
-      </div>
-      {/* BottomNavigation bar */}
       <BottomNavigation
         value={currentRoute}
-        sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
+        sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 99 }}
       >
         <BottomNavigationAction
           value="/"
@@ -38,12 +30,6 @@ const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
           icon={<AddCircleOutlineIcon />}
           component={Link}
           to="/add-poop"
-        />
-        <BottomNavigationAction
-          value="/see-poops"
-          icon={<ViewListIcon />}
-          component={Link}
-          to="/see-poops"
         />
         <BottomNavigationAction
           value="/user"

@@ -59,7 +59,7 @@ const PoopStats: React.FC = () => {
   );
 
   // Get the most recent 3 entries
-  const recentEntries = poopEntries.slice(0, 5).map((entry) => {
+  const recentEntries = poopEntries.slice(0, 3).map((entry) => {
     return {
       user: entry.createdByName,
       dateTime: formatDateTime(entry.dateTime),
@@ -137,7 +137,7 @@ const PoopStats: React.FC = () => {
                 gutterBottom
                 style={{ marginBottom: "1rem" }}
               >
-                This month you pooped
+                This month you pooped around
                 <Chip
                   variant="outlined"
                   label={`${computeMyAverage.toFixed(2)}`}
@@ -146,7 +146,7 @@ const PoopStats: React.FC = () => {
                     borderColor: brown,
                   }}
                 />{" "}
-                each day.
+                times each day.
               </Typography>
               <Typography variant="body1">
                 {computeMyAverage < 1

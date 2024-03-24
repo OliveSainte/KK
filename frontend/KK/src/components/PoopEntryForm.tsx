@@ -26,11 +26,44 @@ import { nanoid } from "nanoid";
 import { useAuth } from "../App";
 import { useQuery, useQueryClient } from "react-query";
 import { useNavigate } from "react-router-dom";
+import { Profile } from "../types/Profile";
 
 const PoopEntryForm: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient(); // Access the query client
+
+  const { data: profile } = useQuery<Profile | null | undefined>(
+    ["profiles", currentUser?.uid],
+    async () => {
+      if (currentUser) {
+        try {
+          const userPoopsQuery = query(
+            collection(firestore, "profiles"),
+            where("id", "==", currentUser?.uid)
+          );
+          const querySnapshot = await getDocs(userPoopsQuery);
+          const entries: Profile[] = [];
+          querySnapshot.forEach((doc) => {
+            entries.push({ id: doc.id, ...doc.data() } as Profile);
+          });
+          // Check if user has a profile, if not, navigate to create profile page
+          if (entries.length === 0) {
+            return null;
+          } else {
+            return entries[0];
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+          return null;
+        }
+      }
+    },
+    {
+      staleTime: Infinity,
+    }
+  );
+
   const { isLoading, data: poopEntries } = useQuery<PoopEntry[], Error>(
     ["userPoopEntries", currentUser?.uid],
     async () => {
@@ -97,9 +130,10 @@ const PoopEntryForm: React.FC = () => {
 
       const newComment: Comment = {
         id: nanoid(),
+        userProfilePic: profile?.profilePicUrl ?? "/KK.svg",
         userId: currentUser?.uid || "",
-        userName: currentUser?.displayName || "Anonymous",
-        text: comment,
+        userName: profile?.username || "Anonymous",
+        text: comment.trim(),
         dateTime: Timestamp.now(),
       };
 
@@ -107,7 +141,8 @@ const PoopEntryForm: React.FC = () => {
         id: nanoid(),
         number: poopEntries?.length + 1,
         createdById: currentUser?.uid as string,
-        createdByName: currentUser?.displayName as string,
+        createdByName: profile?.username as string,
+        userProfilePic: profile?.profilePicUrl as string,
         dateTime: Timestamp.now(),
         size,
         consistency,
@@ -120,6 +155,16 @@ const PoopEntryForm: React.FC = () => {
 
       await setDoc(doc(firestore, "poopEntries", newPoop.id), newPoop).then(
         () => {
+          // Update userPoopEntries and poopEntries data
+          queryClient.setQueryData<PoopEntry[]>(
+            "userPoopEntries",
+            (prevData) => [newPoop, ...(prevData || [])]
+          );
+
+          queryClient.setQueryData<PoopEntry[]>("poopEntries", (prevData) => [
+            newPoop,
+            ...(prevData || []),
+          ]);
           setShowSuccessToast(true);
           setTimeout(() => {
             queryClient.invalidateQueries("userPoopEntries");
@@ -178,7 +223,7 @@ const PoopEntryForm: React.FC = () => {
               aria-label="Poop Size"
               fullWidth
               style={{ marginTop: "16px", marginBottom: "8px" }}
-              color="primary" // Change color to primary
+              color="info"
             >
               <ToggleButton value="big">Big</ToggleButton>
               <ToggleButton value="small">Small</ToggleButton>
@@ -210,7 +255,6 @@ const PoopEntryForm: React.FC = () => {
               fullWidth
               margin="normal"
               multiline
-              rows={2}
               style={{ marginTop: "8px" }}
             />
             <Box mt={2}>
@@ -227,7 +271,7 @@ const PoopEntryForm: React.FC = () => {
           </form>
           <Snackbar
             open={showSuccessToast}
-            autoHideDuration={3000}
+            autoHideDuration={1000}
             onClose={() => setShowSuccessToast(false)}
             message="Poop successfully added!"
             style={{ marginTop: "8px" }}

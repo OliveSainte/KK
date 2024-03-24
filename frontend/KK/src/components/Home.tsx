@@ -34,13 +34,13 @@ const Home: React.FC = () => {
       }
     },
     {
-      staleTime: 120000,
+      staleTime: 60000,
     }
   );
   const [tabValue, setTabValue] = useState<number>(0); // State for controlling tabs
 
   return (
-    <div>
+    <div style={{ width: "100%", minHeight: "90vh" }}>
       {isLoading ? (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <CircularProgress />
@@ -48,12 +48,13 @@ const Home: React.FC = () => {
       ) : (
         <>
           <Tabs
+            sx={{ marginBottom: "1rem" }}
             variant="fullWidth"
             value={tabValue}
             onChange={(_, newValue) => setTabValue(newValue)}
           >
-            <Tab icon={<DynamicFeedIcon />} label="Feed" />
-            <Tab icon={<EmojiEventsIcon />} label="Champions" />
+            <Tab icon={<DynamicFeedIcon />} label="" />
+            <Tab icon={<EmojiEventsIcon />} label="" />
           </Tabs>
           {tabValue === 0 ? (
             <div style={{ marginBottom: "4rem" }}>

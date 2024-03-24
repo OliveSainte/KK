@@ -5,6 +5,7 @@ export interface PoopEntry {
   number: number;
   createdById: string;
   createdByName: string;
+  userProfilePic: string;
   dateTime: firebase.firestore.Timestamp;
   consistency: string;
   location: string;
@@ -17,6 +18,7 @@ export interface PoopEntry {
 
 export interface Comment {
   id: string;
+  userProfilePic: string;
   userId: string; // ID of the user who posted the comment
   userName: string; // Name of the user who posted the comment
   text: string;

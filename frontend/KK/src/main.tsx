@@ -5,13 +5,14 @@ import { ThemeProvider } from "@emotion/react";
 import { createTheme } from "@mui/material";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { brown } from "../public/colors.ts";
 
 // Create a dark mode theme
 const theme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#90caf9", // Adjust primary color as needed
+      main: brown, // Adjust primary color as needed 90caf9
     },
     secondary: {
       main: "#ff4081", // Adjust secondary color as needed
@@ -26,7 +27,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: "'Monospace', sans-serif",
+    fontFamily: "'Open Sans', sans-serif",
   },
 });
 

@@ -1,1 +1,1 @@
-export const brown = "#7C3F00";
+export const brown = "#7B5C4D";
