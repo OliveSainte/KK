@@ -103,10 +103,12 @@ const MapPage = () => {
   if (positions.length < 1 || initialPosition === null || isLoading)
     return <CircularProgress />;
 
-  const icon = L.icon({
-    iconUrl: positions[0].userProfilePic,
-    iconSize: [32, 32],
-  });
+  const icon = (entry: PoopEntry) => {
+    return L.icon({
+      iconUrl: entry.userProfilePic,
+      iconSize: [32, 32],
+    });
+  };
 
   return (
     <div style={{ height: "85vh", width: "100%" }}>
@@ -122,7 +124,7 @@ const MapPage = () => {
         {positions.map((position, index) => (
           <Marker
             key={index}
-            icon={icon}
+            icon={icon(position)}
             position={[
               position.geoPoint?.latitude ?? 0,
               position.geoPoint?.longitude ?? 0,
