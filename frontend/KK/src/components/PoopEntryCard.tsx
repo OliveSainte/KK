@@ -137,6 +137,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
 
   return (
     <Card
+      raised
       onClick={toggleComments}
       sx={{ cursor: "pointer", borderLeft: `6px solid ${brown}` }}
     >

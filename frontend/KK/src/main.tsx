@@ -30,6 +30,18 @@ const theme = createTheme({
   typography: {
     fontFamily: "'Open Sans', sans-serif",
   },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)", // Adding raised styling
+          "&:active": {
+            boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)", // Maintaining the boxShadow on active state to avoid default browser styles
+          },
+        },
+      },
+    },
+  },
 });
 
 const queryClient = new QueryClient();

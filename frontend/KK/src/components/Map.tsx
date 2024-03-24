@@ -114,7 +114,7 @@ const MapPage = () => {
         zoomControl={false} // Add this line to remove zoom buttons
         center={initialPosition}
         zoom={17}
-        style={{ height: "100%", width: "100%", marginTop: "-1.5rem" }}
+        style={{ height: "75vh", width: "100%", marginTop: "-1.5rem" }}
       >
         <div className="map-title">Drop offs</div>
 
@@ -138,7 +138,7 @@ const MapPage = () => {
         direction="row"
         justifyContent="center"
         marginTop="0.5rem"
-        spacing={3}
+        spacing={1}
       >
         <Chip
           variant="outlined"
