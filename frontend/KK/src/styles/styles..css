@@ -1,0 +1,59 @@
+.dark-popup .leaflet-popup-content-wrapper {
+  background: radial-gradient(ellipse at center, rgba(240,194,162,0.7) 0%, rgba(140,68,16,0.7) 1%, rgba(117,49,1,0.7) 67%, rgba(191,126,79,0.7) 100%);
+  color: white;
+  min-width: 20rem; 
+}
+
+/* styles.css */
+
+/* Set the background color of the map container to a dark color */
+.leaflet-container {
+  background-color: #000;
+}
+
+/* Change the color of the tile layer to a dark theme */
+.leaflet-tile-container img {
+  filter: brightness(0.8) invert(1) hue-rotate(180deg);
+}
+
+/* Change the color of the popup */
+.leaflet-popup-content-wrapper {
+  background-color: #222;
+  color: #fff;
+}
+
+/* Change the color of the popup arrow */
+.leaflet-popup-tip-container {
+  background-color: #222;
+}
+
+/* Change the color of the popup arrow border */
+.leaflet-popup-tip {
+  border-bottom-color: #222;
+}
+
+/* Change the color of the popup close button */
+.leaflet-popup-close-button {
+  color: #fff;
+}
+
+/* Customize the loading squares */
+.leaflet-container .leaflet-loading .leaflet-control {
+  background-color: #171717; /* Set the background color for the loading squares */
+}
+
+/* styles.css */
+.map-title {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 8px 16px;
+  border-radius: 5px;
+  z-index: 1000;
+}
+
+

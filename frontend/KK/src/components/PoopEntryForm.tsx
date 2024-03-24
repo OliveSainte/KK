@@ -3,7 +3,6 @@ import {
   TextField,
   Button,
   Box,
-  Snackbar,
   Typography,
   Rating,
   CircularProgress,
@@ -88,7 +87,6 @@ const PoopEntryForm: React.FC = () => {
   const [size, setSize] = useState<"big" | "small" | "">("");
   const [consistency, setConsistency] = useState<"soft" | "hard" | "">("");
   const [comment, setComment] = useState("");
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [location, setLocation] = useState<"home" | "away" | "">("");
   const [rating, setRating] = useState<number>(-1);
 
@@ -111,19 +109,15 @@ const PoopEntryForm: React.FC = () => {
           console.log("User geopoint:", geoLocation);
         },
         (error) => {
-          postNewPoop(undefined);
-
           console.error("Error getting user location:", error);
         }
       );
     } else {
-      postNewPoop(undefined);
-
       console.log("Geolocation is not supported by this browser.");
     }
   };
 
-  const postNewPoop = async (geoPoint: GeoPoint | undefined) => {
+  const postNewPoop = async (geoPoint: GeoPoint) => {
     if (!poopEntries) return;
 
     let isFire = false;
@@ -162,7 +156,6 @@ const PoopEntryForm: React.FC = () => {
       userName: profile?.username || "Anonymous",
       text: comment.trim(),
       dateTime: Timestamp.now(),
-      geoPoint,
     };
 
     const newPoop: PoopEntry = {
@@ -194,19 +187,16 @@ const PoopEntryForm: React.FC = () => {
           newPoop,
           ...(prevData || []),
         ]);
-        setShowSuccessToast(true);
-        setTimeout(() => {
-          queryClient.invalidateQueries("userPoopEntries");
-          queryClient.invalidateQueries("poopEntries");
-          setShowSuccessToast(false);
-          navigate("/");
-        }, 1000);
 
         setSize("");
         setLocation("");
         setConsistency("");
         setComment("");
         setRating(0);
+
+        queryClient.invalidateQueries("userPoopEntries");
+        queryClient.invalidateQueries("poopEntries");
+        navigate("/");
       }
     );
   };
@@ -297,13 +287,6 @@ const PoopEntryForm: React.FC = () => {
               </Button>
             </Box>
           </form>
-          <Snackbar
-            open={showSuccessToast}
-            autoHideDuration={1000}
-            onClose={() => setShowSuccessToast(false)}
-            message="Poop successfully added!"
-            style={{ marginTop: "8px" }}
-          />
         </Box>
       )}
     </div>

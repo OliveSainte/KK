@@ -18,7 +18,14 @@ const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
     <>
       <BottomNavigation
         value={currentRoute}
-        sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 99 }}
+        sx={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 99,
+          backgroundColor: "#171717",
+        }}
       >
         <BottomNavigationAction
           value="/"
