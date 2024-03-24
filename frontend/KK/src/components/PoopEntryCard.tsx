@@ -142,13 +142,12 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
     >
       <CardHeader
         avatar={
-          <>
+          <Badge
+            badgeContent={entry.number} // Display the poop number as badge content
+            anchorOrigin={{ vertical: "top", horizontal: "left" }} // Adjust badge position
+          >
             <Avatar src={entry.userProfilePic} />
-            <Badge
-              badgeContent={entry.number} // Display the poop number as badge content
-              anchorOrigin={{ vertical: "top", horizontal: "left" }} // Adjust badge position
-            />
-          </>
+          </Badge>
         }
         title={
           <>
@@ -157,7 +156,6 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
               {entry.isFire ? "🔥" : ""} {entry.isIce ? "❄️" : ""}
               {entry.comments.length > 0 && (
                 <Chip
-                  color="primary"
                   size="small"
                   sx={{ float: "right" }}
                   label={formatCommentCount(entry.comments.length)}
@@ -181,7 +179,7 @@ const PoopEntryCard: React.FC<PoopEntryProps> = ({ entry }) => {
             alignContent="center"
           >
             <Chip color="warning" variant="outlined" label={entry.location} />
-            <Chip color="primary" variant="outlined" label={entry.size} />
+            <Chip color="info" variant="outlined" label={entry.size} />
             <Chip
               color="secondary"
               variant="outlined"

@@ -15,16 +15,9 @@ type Props = {
 const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
   return (
     <>
-      {/* Main content container */}
-      <div style={{ paddingBottom: "56px" }}>
-        {/* Add 56px padding to the bottom to accommodate the BottomNavigation bar */}
-        {/* Adjust the value as needed based on the BottomNavigation height */}
-        {/* Content goes here */}
-      </div>
-      {/* BottomNavigation bar */}
       <BottomNavigation
         value={currentRoute}
-        sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }}
+        sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 99 }}
       >
         <BottomNavigationAction
           value="/"

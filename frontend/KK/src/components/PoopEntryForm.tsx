@@ -223,7 +223,7 @@ const PoopEntryForm: React.FC = () => {
               aria-label="Poop Size"
               fullWidth
               style={{ marginTop: "16px", marginBottom: "8px" }}
-              color="primary" // Change color to primary
+              color="info"
             >
               <ToggleButton value="big">Big</ToggleButton>
               <ToggleButton value="small">Small</ToggleButton>
