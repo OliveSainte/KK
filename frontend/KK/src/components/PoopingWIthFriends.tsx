@@ -188,7 +188,9 @@ const PoopingComments: React.FC = () => {
   if (loading || isLoading) return <CircularProgress />;
 
   return (
-    <div style={{ width: "100%", marginBottom: "4rem", position: "relative" }}>
+    <div
+      style={{ width: "97.7vh", marginBottom: "4rem", position: "relative" }}
+    >
       <div
         style={{
           position: "sticky",

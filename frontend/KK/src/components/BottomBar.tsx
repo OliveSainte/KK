@@ -59,7 +59,7 @@ const BottomBar = ({
         <BottomNavigationAction
           value="/user"
           icon={
-            <Badge badgeContent={onlineProfiles} color="secondary">
+            <Badge badgeContent={onlineProfiles} color="success">
               <AccountCircleIcon />
             </Badge>
           }

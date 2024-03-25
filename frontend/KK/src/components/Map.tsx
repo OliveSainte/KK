@@ -74,9 +74,8 @@ const MapPage = () => {
     const userPoopEntries = poopEntries.filter(
       (entry) => entry.createdById === currentUser?.uid
     );
-    console.log(userPoopEntries);
     const initial =
-      userPoopEntries.length > 0 ? userPoopEntries[2] : poopEntries[2];
+      userPoopEntries.length > 0 ? userPoopEntries[0] : poopEntries[0];
 
     // Sort the user's poop entries by timestamp in descending order
     const latLngArray: [number, number] = [

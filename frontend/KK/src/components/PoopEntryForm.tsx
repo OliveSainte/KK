@@ -32,9 +32,11 @@ const PoopEntryForm: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient(); // Access the query client
-  const [loading, setLoading] = useState<boolean>(false); // Access the query client
+  const [isSubmittingPoop, setIsSubmittingPoop] = useState<boolean>(false); // Access the query client
 
-  const { data: profile } = useQuery<Profile | null | undefined>(
+  const { data: profile, isLoading: isLoadingProfile } = useQuery<
+    Profile | null | undefined
+  >(
     ["profiles", currentUser?.uid],
     async () => {
       if (currentUser) {
@@ -65,7 +67,10 @@ const PoopEntryForm: React.FC = () => {
     }
   );
 
-  const { isLoading, data: poopEntries } = useQuery<PoopEntry[], Error>(
+  const { isLoading: isLoadingPoopEntries, data: poopEntries } = useQuery<
+    PoopEntry[],
+    Error
+  >(
     ["userPoopEntries", currentUser?.uid],
     async () => {
       if (!currentUser) throw new Error("User not authenticated.");
@@ -91,35 +96,39 @@ const PoopEntryForm: React.FC = () => {
   const [location, setLocation] = useState<"home" | "away" | "">("");
   const [rating, setRating] = useState<number>(-1);
 
+  const allLoading =
+    isSubmittingPoop || isLoadingProfile || isLoadingPoopEntries;
   const isSubmitPoopDisabled = (): boolean => {
-    return !location || !size || !consistency || rating === -1;
+    return !location || !size || !consistency || rating === -1 || allLoading;
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (isSubmitPoopDisabled()) return;
     if ("geolocation" in navigator) {
+      setIsSubmittingPoop(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
           const geoLocation = new GeoPoint(latitude, longitude);
 
           // Now you can use the userGeopoint in your Firestore query or wherever needed
-          postNewPoop(geoLocation);
+          await postNewPoop(geoLocation);
         },
         (error) => {
           console.error("Error getting user location:", error);
+          setIsSubmittingPoop(false);
         }
       );
     } else {
       console.log("Geolocation is not supported by this browser.");
+      setIsSubmittingPoop(false);
     }
   };
 
   const postNewPoop = async (geoPoint: GeoPoint) => {
     if (!poopEntries) return;
-    setLoading(true);
     let isFire = false;
     let isIce = false;
 
@@ -195,7 +204,7 @@ const PoopEntryForm: React.FC = () => {
         setRating(0);
         queryClient.invalidateQueries("userPoopEntries");
         queryClient.invalidateQueries("poopEntries");
-        setLoading(false);
+        setIsSubmittingPoop(false);
         navigate("/");
       }
     );
@@ -203,7 +212,7 @@ const PoopEntryForm: React.FC = () => {
 
   return (
     <div style={{ marginBottom: "4rem", textAlign: "center" }}>
-      {isLoading || loading ? (
+      {isLoadingPoopEntries || isLoadingProfile ? (
         <CircularProgress />
       ) : (
         <Box
@@ -283,7 +292,11 @@ const PoopEntryForm: React.FC = () => {
                 color="primary"
                 type="submit"
               >
-                I Pooped!
+                {isSubmittingPoop ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  "I Pooped!"
+                )}
               </Button>
             </Box>
           </form>
