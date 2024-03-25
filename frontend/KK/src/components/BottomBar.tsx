@@ -1,6 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { BottomNavigation, BottomNavigationAction, Box } from "@mui/material";
+import {
+  Badge,
+  BottomNavigation,
+  BottomNavigationAction,
+  Box,
+} from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -11,9 +16,15 @@ type Props = {
   currentRoute: string;
   currentLang: string;
   setCurrentLang: React.Dispatch<React.SetStateAction<string>>;
+  onlineProfiles: number;
 };
 
-const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
+const BottomBar = ({
+  currentRoute,
+  currentLang,
+  setCurrentLang,
+  onlineProfiles,
+}: Props) => {
   return (
     <>
       <BottomNavigation
@@ -47,7 +58,11 @@ const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
         />
         <BottomNavigationAction
           value="/user"
-          icon={<AccountCircleIcon />}
+          icon={
+            <Badge badgeContent={onlineProfiles} color="secondary">
+              <AccountCircleIcon />
+            </Badge>
+          }
           component={Link}
           to="/user"
         />

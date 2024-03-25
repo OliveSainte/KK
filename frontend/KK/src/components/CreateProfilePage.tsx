@@ -12,6 +12,7 @@ import {
   Avatar,
   CardContent,
   Card,
+  Typography,
 } from "@mui/material";
 import { useAuth } from "../App";
 import { firestore, storage } from "../firebase";
@@ -20,6 +21,7 @@ import { Profile } from "../types/Profile";
 import { useQueryClient } from "react-query";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import { brown } from "../../public/colors";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB in bytes
 
@@ -130,11 +132,10 @@ const CreateProfilePage = () => {
             style={{ display: "none" }}
             onChange={(e) => handleProfilePicChange(e)}
           />
-          <label htmlFor="profile-pic-upload">
-            {error
-              ? "The file must be smaller than 10MB"
-              : "Choose Profile Picture"}
-          </label>
+
+          <Typography marginY="1rem" variant="h6" color={brown}>
+            {error ? "The file must be smaller than 10MB" : ""}
+          </Typography>
           <TextField
             label="Choose a Username"
             variant="outlined"

@@ -14,13 +14,19 @@ import i18n from "i18next";
 // Import translation files synchronously
 import enTranslations from "./i18n/en/translations.json";
 import frTranslations from "./i18n/fr/translations.json";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import { Profile } from "./types/Profile";
 import { firestore } from "./firebase";
 import { useQuery } from "react-query";
 import Navigator from "./components/Navigator";
-import MapPage from "./components/Map";
 import PoopingWithFriends from "./components/PoopingWIthFriends";
+import MapPage from "./components/Map";
 
 // Create AuthContext inline
 const AuthContext = createContext<{ currentUser: User | null }>({
@@ -35,6 +41,7 @@ function App() {
   const [currentLang, setCurrentLang] = useState<string>("fr");
   const location = useLocation();
   const [error, setError] = useState<boolean>(false);
+  const [onlineProfiles, setOnlineProfiles] = useState<number>(0);
 
   useEffect(() => {
     const handleNetworkChange = () => {
@@ -100,16 +107,6 @@ function App() {
     const unsubscribe = onAuthStateChanged(getAuth(), async (user) => {
       if (user) {
         setCurrentUser(user);
-        // try {
-        //   const profileRef = doc(collection(firestore, "profiles"), user.uid);
-        //   await updateDoc(profileRef, {
-        //     lastConnection: Timestamp.now(),
-        //   }).catch(() => setError(true));
-        //   setLoading(false);
-        // } catch (error) {
-        //   console.error("Error updating last connection:", error);
-        //   setLoading(false);
-        // }
         setLoading(false);
       } else {
         setCurrentUser(null);
@@ -146,6 +143,24 @@ function App() {
         },
       });
   }, [currentLang]);
+
+  useEffect(() => {
+    // Listen for changes in the 'profiles' collection where the 'online' field is true
+    const unsubscribe = onSnapshot(
+      query(collection(firestore, "profiles"), where("online", "==", true)),
+      (snapshot) => {
+        const updatedOnlineUsers: Profile[] = [];
+        snapshot.forEach((doc) => {
+          updatedOnlineUsers.push({ id: doc.id, ...doc.data() } as Profile);
+        });
+        setOnlineProfiles(updatedOnlineUsers.length);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ currentUser }}>
@@ -186,6 +201,7 @@ function App() {
                       currentRoute={currentRoute}
                       currentLang={currentLang}
                       setCurrentLang={setCurrentLang}
+                      onlineProfiles={onlineProfiles}
                     />
                   </>
                 ) : (

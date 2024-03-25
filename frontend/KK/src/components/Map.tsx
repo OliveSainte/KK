@@ -2,15 +2,18 @@ import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { firestore } from "../firebase";
 import { PoopEntry } from "../types/PoopEntry";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { Chip, CircularProgress, Stack } from "@mui/material";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { Chip, CircularProgress, Stack, Typography } from "@mui/material";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import PoopEntryCard from "./PoopEntryCard";
 import L from "leaflet";
 import "../styles/styles..css";
 import { brown } from "../../public/colors";
+import { useAuth } from "../App";
 
 const MapPage = () => {
+  const { currentUser } = useAuth();
+
   const [homePoops, setHomePoops] = useState<number>(0);
   const [awayPoops, setAwayPoops] = useState<number>(0);
   const [positions, setPositions] = useState<PoopEntry[]>([]);
@@ -25,7 +28,8 @@ const MapPage = () => {
         const querySnapshot = await getDocs(
           query(
             collection(firestore, "poopEntries"),
-            orderBy("dateTime", "desc")
+            orderBy("dateTime", "desc"),
+            limit(30)
           )
         );
 
@@ -67,9 +71,17 @@ const MapPage = () => {
     });
 
     if (pos.length < 1) return;
+    const userPoopEntries = poopEntries.filter(
+      (entry) => entry.createdById === currentUser?.uid
+    );
+    console.log(userPoopEntries);
+    const initial =
+      userPoopEntries.length > 0 ? userPoopEntries[2] : poopEntries[2];
+
+    // Sort the user's poop entries by timestamp in descending order
     const latLngArray: [number, number] = [
-      pos[0].geoPoint?.latitude ?? 0,
-      pos[0].geoPoint?.longitude ?? 0,
+      initial.geoPoint?.latitude ?? 0,
+      initial.geoPoint?.longitude ?? 0,
     ];
 
     // Convert to Leaflet coordinates
@@ -82,10 +94,16 @@ const MapPage = () => {
     setPositions(pos);
     setHomePoops(homeCount);
     setAwayPoops(awayCount);
-  }, [poopEntries, isLoading]);
+  }, [poopEntries, isLoading, currentUser?.uid]);
 
-  if (positions.length < 1 || initialPosition === null || isLoading)
-    return <CircularProgress />;
+  if (positions.length < 1 || initialPosition === null)
+    return (
+      <Typography variant="h6" textAlign="center">
+        Looks like you have not pooped with your location on!
+      </Typography>
+    );
+
+  if (isLoading) return <CircularProgress />;
 
   const icon = (entry: PoopEntry) => {
     return L.icon({

@@ -7,5 +7,8 @@ service cloud.firestore {
     match /profiles/{document=**} {
       allow read, write: if true;
     }
+    match /poopingComments/{document=**} {
+      allow read, write: if true;
+    }
   }
 }

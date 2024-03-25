@@ -34,9 +34,9 @@ const PoopingComments: React.FC = () => {
   const [onlineUsers, setOnlineUsers] = useState<Profile[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newCommentText, setNewCommentText] = useState("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const { data: profile } = useQuery<Profile | null | undefined>(
+  const { data: profile, isLoading } = useQuery<Profile | null | undefined>(
     ["profiles", currentUser?.uid],
     async () => {
       if (currentUser) {
@@ -153,38 +153,86 @@ const PoopingComments: React.FC = () => {
     setNewCommentText("");
   };
 
-  if (loading) return <CircularProgress />;
+  useEffect(() => {
+    // Handle setting user as offline when the window/tab is closed
+    const handleWindowClose = () => {
+      if (currentUser) {
+        const userRef = doc(firestore, "profiles", currentUser.uid);
+        setDoc(userRef, { online: false }, { merge: true }); // Set user as offline
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Tab gains focus, set user as online
+        if (currentUser) {
+          const userRef = doc(firestore, "profiles", currentUser.uid);
+          setDoc(userRef, { online: true }, { merge: true });
+        }
+      } else if (document.visibilityState === "hidden") {
+        // Tab loses focus, set user as offline
+        if (currentUser) {
+          const userRef = doc(firestore, "profiles", currentUser.uid);
+          setDoc(userRef, { online: false }, { merge: true });
+        }
+      }
+    };
+    window.addEventListener("beforeunload", handleWindowClose);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleWindowClose);
+    };
+  }, [currentUser]);
+
+  if (loading || isLoading) return <CircularProgress />;
 
   return (
-    <div style={{ width: "100%", marginBottom: "4rem" }}>
-      <Grid container spacing={2} marginY="1rem">
-        {onlineUsers.map((user) => (
-          <Grid item key={user.id}>
-            <StyledBadge
-              overlap="circular"
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              variant="dot"
+    <div style={{ width: "100%", marginBottom: "4rem", position: "relative" }}>
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 999,
+          backgroundColor: "#171717",
+        }}
+      >
+        <Grid container spacing={2} marginY="1rem">
+          {onlineUsers.map((user) => (
+            <Grid item key={user.id}>
+              <StyledBadge
+                overlap="circular"
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                variant="dot"
+              >
+                <Avatar alt={user.username} src={user.profilePicUrl} />
+              </StyledBadge>
+            </Grid>
+          ))}
+        </Grid>
+        <Stack marginY="1rem">
+          <TextField
+            label="Write a comment..."
+            multiline
+            inputProps={{ maxLength: 30 }}
+            value={newCommentText}
+            onChange={(e) => setNewCommentText(e.target.value)}
+            fullWidth
+          />
+          <div style={{ textAlign: "center" }}>
+            <Button
+              onClick={handleCommentSubmit}
+              disabled={newCommentText.length < 1}
             >
-              <Avatar alt={user.username} src={user.profilePicUrl} />
-            </StyledBadge>
-          </Grid>
-        ))}
-      </Grid>
-      <Stack marginY="1rem">
-        <TextField
-          label="Write a comment..."
-          multiline
-          inputProps={{ maxLength: 30 }}
-          value={newCommentText}
-          onChange={(e) => setNewCommentText(e.target.value)}
-          fullWidth
-        />
-        <div style={{ textAlign: "center" }}>
-          <Button onClick={handleCommentSubmit}>Post Comment</Button>
-        </div>
-      </Stack>
+              Post Comment
+            </Button>
+          </div>
+        </Stack>
+      </div>
 
-      <CommentSection comments={comments} />
+      <div style={{ zIndex: 1 }}>
+        <CommentSection comments={comments} />
+      </div>
     </div>
   );
 };
