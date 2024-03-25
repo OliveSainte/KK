@@ -1,4 +1,5 @@
 import firebase from "firebase/compat/app";
+import { GeoPoint } from "firebase/firestore";
 
 export interface PoopEntry {
   id: string;
@@ -14,6 +15,7 @@ export interface PoopEntry {
   isFire: boolean;
   isIce: boolean;
   size: string;
+  geoPoint: GeoPoint;
 }
 
 export interface Comment {

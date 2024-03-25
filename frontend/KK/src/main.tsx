@@ -6,6 +6,7 @@ import { createTheme } from "@mui/material";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { brown } from "../public/colors.ts";
+import "leaflet/dist/leaflet.css"; // Import Leaflet CSS stylesheet
 
 // Create a dark mode theme
 const theme = createTheme({
@@ -28,6 +29,15 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: "'Open Sans', sans-serif",
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)", // Adding raised styling
+        },
+      },
+    },
   },
 });
 

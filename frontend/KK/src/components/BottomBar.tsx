@@ -5,6 +5,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import TranslateIcon from "@mui/icons-material/Translate";
+import PinDropIcon from "@mui/icons-material/PinDrop";
 
 type Props = {
   currentRoute: string;
@@ -17,13 +18,26 @@ const BottomBar = ({ currentRoute, currentLang, setCurrentLang }: Props) => {
     <>
       <BottomNavigation
         value={currentRoute}
-        sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 99 }}
+        sx={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 99,
+          backgroundColor: "rgba(23, 23, 23, 0.8)",
+        }}
       >
         <BottomNavigationAction
           value="/"
           icon={<HomeIcon />}
           component={Link}
           to="/"
+        />
+        <BottomNavigationAction
+          value="/map"
+          icon={<PinDropIcon />}
+          component={Link}
+          to="/map"
         />
         <BottomNavigationAction
           value="/add-poop"

@@ -3,7 +3,6 @@ import {
   TextField,
   Button,
   Box,
-  Snackbar,
   Typography,
   Rating,
   CircularProgress,
@@ -12,6 +11,7 @@ import {
 } from "@mui/material";
 import { Comment, PoopEntry } from "../types/PoopEntry";
 import {
+  GeoPoint,
   Timestamp,
   collection,
   doc,
@@ -87,7 +87,6 @@ const PoopEntryForm: React.FC = () => {
   const [size, setSize] = useState<"big" | "small" | "">("");
   const [consistency, setConsistency] = useState<"soft" | "hard" | "">("");
   const [comment, setComment] = useState("");
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [location, setLocation] = useState<"home" | "away" | "">("");
   const [rating, setRating] = useState<number>(-1);
 
@@ -98,89 +97,108 @@ const PoopEntryForm: React.FC = () => {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (isSubmitPoopDisabled()) return;
-    if (poopEntries) {
-      let isFire = false;
-      let isIce = false;
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          const geoLocation = new GeoPoint(latitude, longitude);
 
-      // Check if it's the third or more poop today
-      const todayEntries = poopEntries.filter((entry) => {
-        const entryDate = entry.dateTime.toDate();
-        const currentDate = new Date();
-        return (
-          entryDate.getDate() === currentDate.getDate() &&
-          entryDate.getMonth() === currentDate.getMonth() &&
-          entryDate.getFullYear() === currentDate.getFullYear()
-        );
-      });
-      if (todayEntries.length >= 3) {
-        isFire = true;
-      }
-
-      // Check if it's the first poop in more than 36 hours
-      if (poopEntries.length > 0) {
-        const lastPoopDate = poopEntries[0].dateTime.toDate();
-        const currentDate = new Date();
-        const hoursSinceLastPoop =
-          Math.abs(currentDate.getTime() - lastPoopDate.getTime()) /
-          (1000 * 60 * 60);
-        if (hoursSinceLastPoop > 36) {
-          isIce = true;
-        }
-      }
-
-      const newComment: Comment = {
-        id: nanoid(),
-        userProfilePic: profile?.profilePicUrl ?? "/KK.svg",
-        userId: currentUser?.uid || "",
-        userName: profile?.username || "Anonymous",
-        text: comment.trim(),
-        dateTime: Timestamp.now(),
-      };
-
-      const newPoop: PoopEntry = {
-        id: nanoid(),
-        number: poopEntries?.length + 1,
-        createdById: currentUser?.uid as string,
-        createdByName: profile?.username as string,
-        userProfilePic: profile?.profilePicUrl as string,
-        dateTime: Timestamp.now(),
-        size,
-        consistency,
-        comments: !comment ? [] : [newComment],
-        location,
-        rating,
-        isFire,
-        isIce,
-      };
-
-      await setDoc(doc(firestore, "poopEntries", newPoop.id), newPoop).then(
-        () => {
-          // Update userPoopEntries and poopEntries data
-          queryClient.setQueryData<PoopEntry[]>(
-            "userPoopEntries",
-            (prevData) => [newPoop, ...(prevData || [])]
-          );
-
-          queryClient.setQueryData<PoopEntry[]>("poopEntries", (prevData) => [
-            newPoop,
-            ...(prevData || []),
-          ]);
-          setShowSuccessToast(true);
-          setTimeout(() => {
-            queryClient.invalidateQueries("userPoopEntries");
-            queryClient.invalidateQueries("poopEntries");
-            setShowSuccessToast(false);
-            navigate("/");
-          }, 1000);
-
-          setSize("");
-          setLocation("");
-          setConsistency("");
-          setComment("");
-          setRating(0);
+          // Now you can use the userGeopoint in your Firestore query or wherever needed
+          postNewPoop(geoLocation);
+          console.log("User geopoint:", geoLocation);
+        },
+        (error) => {
+          console.error("Error getting user location:", error);
         }
       );
+    } else {
+      console.log("Geolocation is not supported by this browser.");
     }
+  };
+
+  const postNewPoop = async (geoPoint: GeoPoint) => {
+    if (!poopEntries) return;
+
+    let isFire = false;
+    let isIce = false;
+
+    // Check if it's the third or more poop today
+    const todayEntries = poopEntries.filter((entry) => {
+      const entryDate = entry.dateTime.toDate();
+      const currentDate = new Date();
+      return (
+        entryDate.getDate() === currentDate.getDate() &&
+        entryDate.getMonth() === currentDate.getMonth() &&
+        entryDate.getFullYear() === currentDate.getFullYear()
+      );
+    });
+    if (todayEntries.length >= 3) {
+      isFire = true;
+    }
+
+    // Check if it's the first poop in more than 36 hours
+    if (poopEntries.length > 0) {
+      const lastPoopDate = poopEntries[0].dateTime.toDate();
+      const currentDate = new Date();
+      const hoursSinceLastPoop =
+        Math.abs(currentDate.getTime() - lastPoopDate.getTime()) /
+        (1000 * 60 * 60);
+      if (hoursSinceLastPoop > 36) {
+        isIce = true;
+      }
+    }
+
+    const newComment: Comment = {
+      id: nanoid(),
+      userProfilePic: profile?.profilePicUrl ?? "/KK.svg",
+      userId: currentUser?.uid || "",
+      userName: profile?.username || "Anonymous",
+      text: comment.trim(),
+      dateTime: Timestamp.now(),
+    };
+
+    const newPoop: PoopEntry = {
+      id: nanoid(),
+      number: poopEntries?.length + 1,
+      createdById: currentUser?.uid as string,
+      createdByName: profile?.username as string,
+      userProfilePic: profile?.profilePicUrl as string,
+      dateTime: Timestamp.now(),
+      size,
+      consistency,
+      comments: !comment ? [] : [newComment],
+      location,
+      rating,
+      isFire,
+      isIce,
+      geoPoint,
+    };
+
+    await setDoc(doc(firestore, "poopEntries", newPoop.id), newPoop).then(
+      () => {
+        // Update userPoopEntries and poopEntries data
+        queryClient.setQueryData<PoopEntry[]>("userPoopEntries", (prevData) => [
+          newPoop,
+          ...(prevData || []),
+        ]);
+
+        queryClient.setQueryData<PoopEntry[]>("poopEntries", (prevData) => [
+          newPoop,
+          ...(prevData || []),
+        ]);
+
+        setSize("");
+        setLocation("");
+        setConsistency("");
+        setComment("");
+        setRating(0);
+
+        queryClient.invalidateQueries("userPoopEntries");
+        queryClient.invalidateQueries("poopEntries");
+        navigate("/");
+      }
+    );
   };
 
   return (
@@ -248,7 +266,7 @@ const PoopEntryForm: React.FC = () => {
               size="large" // Set the size of the stars
             />
             <TextField
-              inputProps={{ maxLength: 30 }}
+              inputProps={{ maxLength: 20 }}
               label="Comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -269,13 +287,6 @@ const PoopEntryForm: React.FC = () => {
               </Button>
             </Box>
           </form>
-          <Snackbar
-            open={showSuccessToast}
-            autoHideDuration={1000}
-            onClose={() => setShowSuccessToast(false)}
-            message="Poop successfully added!"
-            style={{ marginTop: "8px" }}
-          />
         </Box>
       )}
     </div>
