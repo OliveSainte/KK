@@ -32,6 +32,7 @@ const PoopEntryForm: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient(); // Access the query client
+  const [loading, setLoading] = useState<boolean>(false); // Access the query client
 
   const { data: profile } = useQuery<Profile | null | undefined>(
     ["profiles", currentUser?.uid],
@@ -106,7 +107,6 @@ const PoopEntryForm: React.FC = () => {
 
           // Now you can use the userGeopoint in your Firestore query or wherever needed
           postNewPoop(geoLocation);
-          console.log("User geopoint:", geoLocation);
         },
         (error) => {
           console.error("Error getting user location:", error);
@@ -119,7 +119,7 @@ const PoopEntryForm: React.FC = () => {
 
   const postNewPoop = async (geoPoint: GeoPoint) => {
     if (!poopEntries) return;
-
+    setLoading(true);
     let isFire = false;
     let isIce = false;
 
@@ -193,9 +193,9 @@ const PoopEntryForm: React.FC = () => {
         setConsistency("");
         setComment("");
         setRating(0);
-
         queryClient.invalidateQueries("userPoopEntries");
         queryClient.invalidateQueries("poopEntries");
+        setLoading(false);
         navigate("/");
       }
     );
@@ -203,7 +203,7 @@ const PoopEntryForm: React.FC = () => {
 
   return (
     <div style={{ marginBottom: "4rem", textAlign: "center" }}>
-      {isLoading ? (
+      {isLoading || loading ? (
         <CircularProgress />
       ) : (
         <Box

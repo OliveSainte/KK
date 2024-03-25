@@ -5,7 +5,7 @@ import Home from "./components/Home";
 import BottomNavigationBar from "./components/BottomBar";
 import PoopEntryForm from "./components/PoopEntryForm";
 import LoginPage from "./components/Login";
-import UserPage from "./components/UserPage";
+import ProfilePage from "./components/ProfilePage";
 import CreateProfilePage from "./components/CreateProfilePage"; // Import the CreateProfilePage component
 import { CircularProgress, Box } from "@mui/material";
 import { initReactI18next } from "react-i18next";
@@ -20,6 +20,7 @@ import { firestore } from "./firebase";
 import { useQuery } from "react-query";
 import Navigator from "./components/Navigator";
 import MapPage from "./components/Map";
+import PoopingWithFriends from "./components/PoopingWIthFriends";
 
 // Create AuthContext inline
 const AuthContext = createContext<{ currentUser: User | null }>({
@@ -33,8 +34,28 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true); // Add loading state
   const [currentLang, setCurrentLang] = useState<string>("fr");
   const location = useLocation();
+  const [error, setError] = useState<boolean>(false);
 
-  const { data: profile } = useQuery<Profile | null | undefined>(
+  useEffect(() => {
+    const handleNetworkChange = () => {
+      setError(!navigator.onLine); // Update error state based on network status
+    };
+
+    // Listen for changes in network status
+    window.addEventListener("online", handleNetworkChange);
+    window.addEventListener("offline", handleNetworkChange);
+
+    // Initial check for network status
+    setError(!navigator.onLine);
+
+    // Clean up event listeners
+    return () => {
+      window.removeEventListener("online", handleNetworkChange);
+      window.removeEventListener("offline", handleNetworkChange);
+    };
+  }, []);
+
+  const { isLoading, data: profile } = useQuery<Profile | null | undefined>(
     ["profiles", currentUser?.uid],
     async () => {
       if (currentUser) {
@@ -43,22 +64,26 @@ function App() {
             collection(firestore, "profiles"),
             where("id", "==", currentUser?.uid)
           );
-          const querySnapshot = await getDocs(userPoopsQuery);
+          const querySnapshot = await getDocs(userPoopsQuery).catch(() => {
+            setError(true);
+            return null;
+          });
           const entries: Profile[] = [];
-          querySnapshot.forEach((doc) => {
+          querySnapshot?.forEach((doc) => {
             entries.push({ id: doc.id, ...doc.data() } as Profile);
           });
           // Check if user has a profile, if not, navigate to create profile page
           if (entries.length === 0) {
-            setLoading(false);
             navigate("/create-profile");
+            setLoading(false);
             return null;
           } else {
-            setLoading(false);
             navigate(location.pathname);
+            setLoading(false);
             return entries[0];
           }
         } catch (error) {
+          setError(true);
           console.error("Error fetching profile:", error);
           setLoading(false); // Set loading to false if there's an error
           return null;
@@ -71,9 +96,21 @@ function App() {
   );
 
   useEffect(() => {
+    setLoading(true);
     const unsubscribe = onAuthStateChanged(getAuth(), async (user) => {
       if (user) {
         setCurrentUser(user);
+        // try {
+        //   const profileRef = doc(collection(firestore, "profiles"), user.uid);
+        //   await updateDoc(profileRef, {
+        //     lastConnection: Timestamp.now(),
+        //   }).catch(() => setError(true));
+        //   setLoading(false);
+        // } catch (error) {
+        //   console.error("Error updating last connection:", error);
+        //   setLoading(false);
+        // }
+        setLoading(false);
       } else {
         setCurrentUser(null);
         setLoading(false);
@@ -120,35 +157,45 @@ function App() {
           minHeight: "90vh",
         }}
       >
-        {loading ? (
-          <CircularProgress />
-        ) : currentUser ? (
+        {error ? (
+          <div>Merde!</div>
+        ) : (
           <>
-            {/* Check if the user has a profile, if not redirect to create profile page */}
-            {profile ? (
+            {loading || isLoading ? (
+              <CircularProgress />
+            ) : currentUser ? (
               <>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route
-                    path="/create-profile"
-                    element={<Navigator location={"/"} />}
-                  />
-                  <Route path="/add-poop" element={<PoopEntryForm />} />
-                  <Route path="/map" element={<MapPage />} />
-                  <Route path="/user" element={<UserPage />} />
-                </Routes>
-                <BottomNavigationBar
-                  currentRoute={currentRoute}
-                  currentLang={currentLang}
-                  setCurrentLang={setCurrentLang}
-                />
+                {/* Check if the user has a profile, if not redirect to create profile page */}
+                {profile ? (
+                  <>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route
+                        path="/create-profile"
+                        element={<Navigator location={"/"} />}
+                      />
+                      <Route path="/add-poop" element={<PoopEntryForm />} />
+                      <Route path="/map" element={<MapPage />} />
+                      <Route
+                        path="/pooping-with-friends"
+                        element={<PoopingWithFriends />}
+                      />
+                      <Route path="/user" element={<ProfilePage />} />
+                    </Routes>
+                    <BottomNavigationBar
+                      currentRoute={currentRoute}
+                      currentLang={currentLang}
+                      setCurrentLang={setCurrentLang}
+                    />
+                  </>
+                ) : (
+                  <CreateProfilePage />
+                )}
               </>
             ) : (
-              <CreateProfilePage />
+              <LoginPage />
             )}
           </>
-        ) : (
-          <LoginPage />
         )}
       </Box>
     </AuthContext.Provider>

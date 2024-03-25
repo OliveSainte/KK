@@ -6,8 +6,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Badge,
-  styled,
+  Stack,
+  ButtonGroup,
 } from "@mui/material";
 import { getAuth, signOut } from "firebase/auth";
 import { useAuth } from "../App";
@@ -17,37 +17,11 @@ import { firestore } from "../firebase";
 import { Profile } from "../types/Profile";
 import PoopEntries from "./PoopEntries";
 import { useState } from "react";
+import { StyledBadge } from "../styles/styledComponents";
+import { useNavigate } from "react-router-dom";
 
-const StyledBadge = styled(Badge)(({ theme }) => ({
-  "& .MuiBadge-badge": {
-    backgroundColor: "#44b700",
-    color: "#44b700",
-    boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-    "&::after": {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      borderRadius: "50%",
-      animation: "ripple 1.2s infinite ease-in-out",
-      border: "1px solid currentColor",
-      content: '""',
-    },
-  },
-  "@keyframes ripple": {
-    "0%": {
-      transform: "scale(.8)",
-      opacity: 1,
-    },
-    "100%": {
-      transform: "scale(2.4)",
-      opacity: 0,
-    },
-  },
-}));
-
-const UserPage = () => {
+const ProfilePage = () => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const { data: profile } = useQuery<Profile | null | undefined>(
@@ -122,14 +96,24 @@ const UserPage = () => {
         {profile?.username}
       </Typography>
       <div style={{ textAlign: "center" }}>
-        <Button
-          onClick={openLogoutDialog}
-          variant="outlined"
-          style={{ marginTop: "2rem", marginBottom: "2rem" }}
-          color="warning"
-        >
-          Logout
-        </Button>
+        <Stack spacing="1rem" marginY="2rem">
+          <ButtonGroup fullWidth>
+            <Button
+              onClick={() => navigate("/pooping-with-friends")}
+              variant="outlined"
+              color="success"
+            >
+              Pooping with friends
+            </Button>
+            <Button
+              onClick={openLogoutDialog}
+              variant="outlined"
+              color="warning"
+            >
+              Logout
+            </Button>
+          </ButtonGroup>
+        </Stack>
       </div>
 
       <PoopEntries />
@@ -155,4 +139,4 @@ const UserPage = () => {
   );
 };
 
-export default UserPage;
+export default ProfilePage;

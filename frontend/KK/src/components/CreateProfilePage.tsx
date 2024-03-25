@@ -15,12 +15,13 @@ import {
 } from "@mui/material";
 import { useAuth } from "../App";
 import { firestore, storage } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { Timestamp, doc, setDoc } from "firebase/firestore";
 import { Profile } from "../types/Profile";
 import { useQueryClient } from "react-query";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 2MB in bytes
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB in bytes
 
 const CreateProfilePage = () => {
   const queryClient = useQueryClient();
@@ -42,12 +43,14 @@ const CreateProfilePage = () => {
       return;
 
     setLoading(true);
+    setOpenDialog(false);
 
     const profilePicUrl = await uploadProfilePic(profilePic);
     const newProfile: Profile = {
       username: username.trim(),
       id: currentUser.uid,
       profilePicUrl: profilePicUrl ?? "/KK.svg",
+      lastConnection: Timestamp.now(),
     };
 
     try {
@@ -55,7 +58,6 @@ const CreateProfilePage = () => {
       queryClient.setQueryData(["profiles", currentUser.uid], newProfile);
       setUsername("");
       setProfilePic(null); // Clear profile picture state after uploading
-      setOpenDialog(false);
       setOpenSnackbar(true);
     } catch (error) {
       console.error("Error creating profile:", error);
@@ -82,10 +84,8 @@ const CreateProfilePage = () => {
       const storageRef = ref(storage, `${currentUser.uid}/${file.name}`); // Reference to the root of Firebase Storage
       await uploadBytes(storageRef, file); // Upload the file
       const downloadURL = await getDownloadURL(storageRef); // Get the download URL
-      console.log("File uploaded successfully. Download URL:", downloadURL);
       return downloadURL; // Return the download URL
     } catch (error) {
-      console.error("Error uploading profile picture:", error);
       return null;
     }
   };
@@ -108,13 +108,19 @@ const CreateProfilePage = () => {
               alt="Profile Pic"
               src={URL.createObjectURL(profilePic)}
               style={{ width: "150px", height: "150px", margin: "auto" }}
+              onClick={() =>
+                document.getElementById("profile-pic-upload")?.click()
+              }
             />
           ) : (
-            <Avatar
-              alt="KK"
-              src="/KK.svg"
-              style={{ width: "150px", height: "150px", margin: "auto" }}
-            />
+            <label htmlFor="profile-pic-upload">
+              <Avatar
+                alt="Add Photo"
+                style={{ width: "150px", height: "150px", margin: "auto" }}
+              >
+                <AddPhotoAlternateIcon />
+              </Avatar>
+            </label>
           )}
           {/* Input for uploading profile picture */}
           <input
@@ -125,16 +131,9 @@ const CreateProfilePage = () => {
             onChange={(e) => handleProfilePicChange(e)}
           />
           <label htmlFor="profile-pic-upload">
-            <Button
-              variant="outlined"
-              component="span"
-              color="primary"
-              style={{ marginTop: "20px", marginBottom: "20px" }}
-            >
-              {error
-                ? "The file must be smaller than 10MB"
-                : "Choose Profile Picture"}
-            </Button>
+            {error
+              ? "The file must be smaller than 10MB"
+              : "Choose Profile Picture"}
           </label>
           <TextField
             label="Choose a Username"
