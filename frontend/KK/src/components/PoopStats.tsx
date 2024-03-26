@@ -14,10 +14,6 @@ import {
   Stack,
 } from "@mui/material";
 import { formatDateTime } from "../utils/formatters";
-import { useQuery } from "react-query";
-import { getDocs, collection, query, orderBy } from "firebase/firestore";
-import { firestore } from "../firebase";
-import { PoopEntry } from "../types/PoopEntry";
 import { useAuth } from "../App";
 import {
   calculateLeaderboard,
@@ -27,28 +23,11 @@ import {
 import { isToday } from "../utils/checkers";
 import { brown } from "../../public/colors";
 import { MilitaryTech } from "@mui/icons-material";
+import usePoopEntries from "../queries/usePoopEntries";
 
 const PoopStats: React.FC = () => {
   const { currentUser } = useAuth();
-  const { isLoading, data: poopEntries = [] } = useQuery<PoopEntry[], Error>(
-    ["poopEntries"],
-    async () => {
-      const querySnapshot = await getDocs(
-        query(collection(firestore, "poopEntries"), orderBy("dateTime"))
-      );
-
-      const entries: PoopEntry[] = [];
-
-      querySnapshot.forEach((doc) => {
-        entries.push({ id: doc.id, ...doc.data() } as PoopEntry);
-      });
-
-      return entries;
-    },
-    {
-      staleTime: 120000, // One minute stale time
-    }
-  );
+  const { isLoading, poopEntries } = usePoopEntries();
 
   const leaderboard = useMemo(
     () =>
@@ -157,16 +136,19 @@ const PoopStats: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <Paper elevation={3} style={{ padding: 20 }}>
-              <Typography variant="h6" gutterBottom>
-                Today
-              </Typography>
+            <Paper elevation={3}>
               <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>User</TableCell>
-                      <TableCell>Poops</TableCell>
+                      <TableCell>
+                        <Typography variant="h6" gutterBottom>
+                          Today
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <strong>Poops</strong>
+                      </TableCell>
                       <TableCell></TableCell>
                     </TableRow>
                   </TableHead>
@@ -194,16 +176,19 @@ const PoopStats: React.FC = () => {
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Paper elevation={3} style={{ padding: 20 }}>
-              <Typography variant="h6" gutterBottom>
-                Latest
-              </Typography>
+            <Paper elevation={3}>
               <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>User</TableCell>
-                      <TableCell>#</TableCell>
+                      <TableCell>
+                        <Typography variant="h6" gutterBottom>
+                          Latest
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <strong>#</strong>
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -221,24 +206,22 @@ const PoopStats: React.FC = () => {
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Paper
-              elevation={3}
-              style={{
-                paddingLeft: 20,
-                paddingRight: 20,
-                paddingTop: 20,
-              }}
-            >
-              <Typography variant="h6" gutterBottom>
-                This Month
-              </Typography>
+            <Paper elevation={3}>
               <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>User</TableCell>
-                      <TableCell>Poops</TableCell>
-                      <TableCell>Per Day</TableCell>
+                      <TableCell>
+                        <Typography variant="h6" gutterBottom>
+                          This Month
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <strong>Poops</strong>
+                      </TableCell>
+                      <TableCell>
+                        <strong>Per Day</strong>
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -268,7 +251,7 @@ const PoopStats: React.FC = () => {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12}>
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
@@ -285,8 +268,12 @@ const PoopStats: React.FC = () => {
                         />
                       </Typography>
                     </TableCell>
-                    <TableCell align="right">Poops</TableCell>
-                    <TableCell align="right">Trend</TableCell>
+                    <TableCell align="right">
+                      <strong>Poops</strong>
+                    </TableCell>
+                    <TableCell align="right">
+                      <strong>Trend</strong>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

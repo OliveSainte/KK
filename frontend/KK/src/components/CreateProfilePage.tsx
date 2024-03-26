@@ -107,7 +107,8 @@ const CreateProfilePage = () => {
           {/* Display uploaded profile picture */}
           {profilePic ? (
             <Avatar
-              alt="Profile Pic"
+              alt="/KK.svg"
+              srcSet={URL.createObjectURL(profilePic)}
               src={URL.createObjectURL(profilePic)}
               style={{ width: "150px", height: "150px", margin: "auto" }}
               onClick={() =>
@@ -117,7 +118,7 @@ const CreateProfilePage = () => {
           ) : (
             <label htmlFor="profile-pic-upload">
               <Avatar
-                alt="Add Photo"
+                alt="/KK.svg"
                 style={{ width: "150px", height: "150px", margin: "auto" }}
               >
                 <AddPhotoAlternateIcon />

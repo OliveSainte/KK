@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "react-query";
-import { firestore } from "../firebase";
 import { PoopEntry } from "../types/PoopEntry";
-import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
-import { Chip, CircularProgress, Stack, Typography } from "@mui/material";
+import { Chip, CircularProgress, Stack } from "@mui/material";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import PoopEntryCard from "./PoopEntryCard";
 import L from "leaflet";
 import "../styles/styles..css";
 import { brown } from "../../public/colors";
 import { useAuth } from "../App";
+import usePoopEntries from "../queries/usePoopEntries";
 
 const MapPage = () => {
   const { currentUser } = useAuth();
@@ -21,34 +19,7 @@ const MapPage = () => {
     [number, number] | null
   >(null);
 
-  const { isLoading, data: poopEntries } = useQuery<PoopEntry[], Error>(
-    ["poopEntries"],
-    async () => {
-      try {
-        const querySnapshot = await getDocs(
-          query(
-            collection(firestore, "poopEntries"),
-            orderBy("dateTime", "desc"),
-            limit(30)
-          )
-        );
-
-        const entries: PoopEntry[] = [];
-
-        querySnapshot.forEach((doc) => {
-          entries.push({ id: doc.id, ...doc.data() } as PoopEntry);
-        });
-
-        return entries;
-      } catch (error) {
-        console.error("Error fetching poop entries:", error);
-        throw new Error("Failed to fetch poop entries");
-      }
-    },
-    {
-      staleTime: 60000,
-    }
-  );
+  const { isLoading, poopEntries } = usePoopEntries();
 
   useEffect(() => {
     if (!poopEntries || poopEntries.length < 1 || isLoading) return;
@@ -96,18 +67,15 @@ const MapPage = () => {
   }, [poopEntries, isLoading, currentUser?.uid]);
 
   if (positions.length < 1 || initialPosition === null)
-    return (
-      <Typography variant="h6" textAlign="center">
-        Looks like you have not pooped with your location on!
-      </Typography>
-    );
+    return <CircularProgress />;
 
   if (isLoading) return <CircularProgress />;
 
   const icon = (entry: PoopEntry) => {
     return L.icon({
       iconUrl: entry.userProfilePic,
-      iconSize: [32, 32],
+      iconRetinaUrl: entry.userProfilePic,
+      iconSize: [30, 30],
     });
   };
 

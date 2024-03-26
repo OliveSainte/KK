@@ -6,42 +6,18 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
-import { PoopEntry } from "../types/PoopEntry";
-import { getDocs, collection, query, where, orderBy } from "firebase/firestore";
-import { firestore } from "../firebase";
 import { useAuth } from "../App";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "react-query";
 import PoopEntryCard from "./PoopEntryCard";
+import useUserPoopEntries from "../queries/useUserPoopEntries";
 
 const PoopEntries: React.FC = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
 
   // Use useQuery to fetch poop entries
-  const {
-    isLoading,
-    data: poopEntries,
-    error,
-  } = useQuery<PoopEntry[], Error>(
-    ["userPoopEntries", currentUser?.uid],
-    async () => {
-      if (!currentUser) throw new Error("User not authenticated.");
-      const userPoopsQuery = query(
-        collection(firestore, "poopEntries"),
-        orderBy("dateTime", "desc"),
-        where("createdById", "==", currentUser.uid)
-      );
-      const querySnapshot = await getDocs(userPoopsQuery);
-      const entries: PoopEntry[] = [];
-      querySnapshot.forEach((doc) => {
-        entries.push({ id: doc.id, ...doc.data() } as PoopEntry);
-      });
-      return entries;
-    },
-    {
-      staleTime: 120000,
-    }
+  const { isLoading, poopEntries, error } = useUserPoopEntries(
+    currentUser?.uid
   );
 
   return (

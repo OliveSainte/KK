@@ -1,71 +1,33 @@
 import React, { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  onSnapshot,
-  orderBy,
-  where,
-  addDoc,
-  Timestamp,
-  setDoc,
-  doc,
-  getDocs,
-  limit,
-} from "firebase/firestore";
+import { collection, addDoc, Timestamp, doc, setDoc } from "firebase/firestore";
 import { firestore } from "../firebase";
 import CommentSection from "./CommentSection";
 import { Comment } from "../types/PoopEntry";
 import {
   Avatar,
-  Button,
   CircularProgress,
   Grid,
+  IconButton,
   Stack,
   TextField,
 } from "@mui/material";
 import { useAuth } from "../App";
-import { Profile } from "../types/Profile";
 import { StyledBadge } from "../styles/styledComponents";
 import { nanoid } from "nanoid";
-import { useQuery } from "react-query";
+import SendIcon from "@mui/icons-material/Send";
+import usePoopingComments from "../queries/usePoopingComments";
+import useOnlineUsers from "../queries/useOnlineUsers";
+import useUserProfile from "../queries/useUserProfile";
 
 const PoopingComments: React.FC = () => {
   const { currentUser } = useAuth();
-  const [onlineUsers, setOnlineUsers] = useState<Profile[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const { comments, isLoading: isLoadingComments } = usePoopingComments();
+  const { onlineUsers, isLoading: isLoadingOnlineUsers } = useOnlineUsers();
   const [newCommentText, setNewCommentText] = useState("");
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const { data: profile, isLoading } = useQuery<Profile | null | undefined>(
-    ["profiles", currentUser?.uid],
-    async () => {
-      if (currentUser) {
-        try {
-          const userPoopsQuery = query(
-            collection(firestore, "profiles"),
-            where("id", "==", currentUser?.uid)
-          );
-          const querySnapshot = await getDocs(userPoopsQuery);
-          const entries: Profile[] = [];
-          querySnapshot.forEach((doc) => {
-            entries.push({ id: doc.id, ...doc.data() } as Profile);
-          });
-          // Check if user has a profile, if not, navigate to create profile page
-          if (entries.length === 0) {
-            return null;
-          } else {
-            return entries[0];
-          }
-        } catch (error) {
-          console.error("Error fetching profile:", error);
-          return null;
-        }
-      }
-    },
-    {
-      staleTime: Infinity,
-    }
+  const onlineUsersNoCurrent = onlineUsers.filter(
+    (u) => u.id !== currentUser?.uid
   );
+  const { profile, isLoading } = useUserProfile(currentUser?.uid);
 
   useEffect(() => {
     const updateOnlineStatus = async () => {
@@ -90,47 +52,6 @@ const PoopingComments: React.FC = () => {
     };
   }, [currentUser]);
 
-  useEffect(() => {
-    // Listen for changes in the 'profiles' collection where the 'online' field is true
-    const unsubscribe = onSnapshot(
-      query(collection(firestore, "profiles"), where("online", "==", true)),
-      (snapshot) => {
-        const updatedOnlineUsers: Profile[] = [];
-        snapshot.forEach((doc) => {
-          updatedOnlineUsers.push({ id: doc.id, ...doc.data() } as Profile);
-        });
-        setOnlineUsers(updatedOnlineUsers);
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    // Listen for changes in the 'poopingComments' collection
-    const unsubscribe = onSnapshot(
-      query(
-        collection(firestore, "poopingComments"),
-        orderBy("dateTime", "desc"),
-        limit(50) // Order comments by dateTime in descending order
-      ),
-      (snapshot) => {
-        const updatedComments: Comment[] = [];
-        snapshot.forEach((doc) => {
-          updatedComments.push({ id: doc.id, ...doc.data() } as Comment);
-        });
-        setComments(updatedComments);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
   const handleCommentSubmit = async () => {
     if (newCommentText.trim() === "") {
       return; // Don't submit empty comments
@@ -153,39 +74,8 @@ const PoopingComments: React.FC = () => {
     setNewCommentText("");
   };
 
-  useEffect(() => {
-    // Handle setting user as offline when the window/tab is closed
-    const handleWindowClose = () => {
-      if (currentUser) {
-        const userRef = doc(firestore, "profiles", currentUser.uid);
-        setDoc(userRef, { online: false }, { merge: true }); // Set user as offline
-      }
-    };
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        // Tab gains focus, set user as online
-        if (currentUser) {
-          const userRef = doc(firestore, "profiles", currentUser.uid);
-          setDoc(userRef, { online: true }, { merge: true });
-        }
-      } else if (document.visibilityState === "hidden") {
-        // Tab loses focus, set user as offline
-        if (currentUser) {
-          const userRef = doc(firestore, "profiles", currentUser.uid);
-          setDoc(userRef, { online: false }, { merge: true });
-        }
-      }
-    };
-    window.addEventListener("beforeunload", handleWindowClose);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleWindowClose);
-    };
-  }, [currentUser]);
-
-  if (loading || isLoading) return <CircularProgress />;
+  if (isLoadingComments || isLoadingOnlineUsers || isLoading)
+    return <CircularProgress />;
 
   return (
     <div
@@ -200,7 +90,20 @@ const PoopingComments: React.FC = () => {
         }}
       >
         <Grid container spacing={2} marginY="1rem">
-          {onlineUsers.map((user) => (
+          <Grid item>
+            <StyledBadge
+              overlap="circular"
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              variant="dot"
+            >
+              <Avatar
+                alt={profile?.profilePicUrl}
+                src={profile?.profilePicUrl}
+              />
+            </StyledBadge>
+          </Grid>
+
+          {onlineUsersNoCurrent.map((user) => (
             <Grid item key={user.id}>
               <StyledBadge
                 overlap="circular"
@@ -214,21 +117,22 @@ const PoopingComments: React.FC = () => {
         </Grid>
         <Stack marginY="1rem">
           <TextField
-            label="Write a comment..."
-            multiline
+            label="Poop with friends!"
             inputProps={{ maxLength: 30 }}
             value={newCommentText}
             onChange={(e) => setNewCommentText(e.target.value)}
             fullWidth
+            InputProps={{
+              endAdornment: (
+                <IconButton
+                  onClick={handleCommentSubmit}
+                  disabled={newCommentText.length < 1}
+                >
+                  <SendIcon />
+                </IconButton>
+              ),
+            }}
           />
-          <div style={{ textAlign: "center" }}>
-            <Button
-              onClick={handleCommentSubmit}
-              disabled={newCommentText.length < 1}
-            >
-              Post Comment
-            </Button>
-          </div>
         </Stack>
       </div>
 

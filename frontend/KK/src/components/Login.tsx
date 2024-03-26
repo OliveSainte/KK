@@ -29,8 +29,9 @@ const LoginPage = () => {
                 height: "15rem", // Adjust the height as desired
                 display: "block",
               }}
-              alt="KK"
+              alt="/KK.svg"
               src="/KK.svg"
+              srcSet="/KK.svg"
             />
           </Box>
 

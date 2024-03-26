@@ -10,23 +10,14 @@ import {
   ToggleButtonGroup,
 } from "@mui/material";
 import { Comment, PoopEntry } from "../types/PoopEntry";
-import {
-  GeoPoint,
-  Timestamp,
-  collection,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-  where,
-} from "firebase/firestore";
+import { GeoPoint, Timestamp, doc, setDoc } from "firebase/firestore";
 import { firestore } from "../firebase";
 import { nanoid } from "nanoid";
 import { useAuth } from "../App";
-import { useQuery, useQueryClient } from "react-query";
+import { useQueryClient } from "react-query";
 import { useNavigate } from "react-router-dom";
-import { Profile } from "../types/Profile";
+import useUserProfile from "../queries/useUserProfile";
+import useUserPoopEntries from "../queries/useUserPoopEntries";
 
 const PoopEntryForm: React.FC = () => {
   const { currentUser } = useAuth();
@@ -34,61 +25,12 @@ const PoopEntryForm: React.FC = () => {
   const queryClient = useQueryClient(); // Access the query client
   const [isSubmittingPoop, setIsSubmittingPoop] = useState<boolean>(false); // Access the query client
 
-  const { data: profile, isLoading: isLoadingProfile } = useQuery<
-    Profile | null | undefined
-  >(
-    ["profiles", currentUser?.uid],
-    async () => {
-      if (currentUser) {
-        try {
-          const userPoopsQuery = query(
-            collection(firestore, "profiles"),
-            where("id", "==", currentUser?.uid)
-          );
-          const querySnapshot = await getDocs(userPoopsQuery);
-          const entries: Profile[] = [];
-          querySnapshot.forEach((doc) => {
-            entries.push({ id: doc.id, ...doc.data() } as Profile);
-          });
-          // Check if user has a profile, if not, navigate to create profile page
-          if (entries.length === 0) {
-            return null;
-          } else {
-            return entries[0];
-          }
-        } catch (error) {
-          console.error("Error fetching profile:", error);
-          return null;
-        }
-      }
-    },
-    {
-      staleTime: Infinity,
-    }
+  const { profile, isLoading: isLoadingProfile } = useUserProfile(
+    currentUser?.uid
   );
 
-  const { isLoading: isLoadingPoopEntries, data: poopEntries } = useQuery<
-    PoopEntry[],
-    Error
-  >(
-    ["userPoopEntries", currentUser?.uid],
-    async () => {
-      if (!currentUser) throw new Error("User not authenticated.");
-      const userPoopsQuery = query(
-        collection(firestore, "poopEntries"),
-        where("createdById", "==", currentUser.uid),
-        orderBy("dateTime", "desc")
-      );
-      const querySnapshot = await getDocs(userPoopsQuery);
-      const entries: PoopEntry[] = [];
-      querySnapshot.forEach((doc) => {
-        entries.push({ id: doc.id, ...doc.data() } as PoopEntry);
-      });
-      return entries;
-    },
-    {
-      staleTime: 120000,
-    }
+  const { isLoading: isLoadingPoopEntries, poopEntries } = useUserPoopEntries(
+    currentUser?.uid
   );
   const [size, setSize] = useState<"big" | "small" | "">("");
   const [consistency, setConsistency] = useState<"soft" | "hard" | "">("");
@@ -231,6 +173,7 @@ const PoopEntryForm: React.FC = () => {
             </Typography>
 
             <ToggleButtonGroup
+              disabled={isSubmittingPoop}
               value={location}
               exclusive
               onChange={(_, newValue) => setLocation(newValue)}
@@ -244,6 +187,7 @@ const PoopEntryForm: React.FC = () => {
             </ToggleButtonGroup>
 
             <ToggleButtonGroup
+              disabled={isSubmittingPoop}
               value={size}
               exclusive
               onChange={(_, newValue) => setSize(newValue)}
@@ -256,6 +200,7 @@ const PoopEntryForm: React.FC = () => {
               <ToggleButton value="small">Small</ToggleButton>
             </ToggleButtonGroup>
             <ToggleButtonGroup
+              disabled={isSubmittingPoop}
               value={consistency}
               exclusive
               onChange={(_, newValue) => setConsistency(newValue)}
@@ -268,6 +213,7 @@ const PoopEntryForm: React.FC = () => {
               <ToggleButton value="soft">Soft</ToggleButton>
             </ToggleButtonGroup>
             <Rating
+              disabled={isSubmittingPoop}
               sx={{ margin: "2rem" }}
               name="rating"
               value={rating}
@@ -275,6 +221,7 @@ const PoopEntryForm: React.FC = () => {
               size="large" // Set the size of the stars
             />
             <TextField
+              disabled={isSubmittingPoop}
               inputProps={{ maxLength: 20 }}
               label="Comment"
               value={comment}

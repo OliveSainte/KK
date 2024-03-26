@@ -59,9 +59,28 @@ const BottomBar = ({
         <BottomNavigationAction
           value="/user"
           icon={
-            <Badge badgeContent={onlineProfiles} color="success">
+            <>
+              <Badge
+                badgeContent={onlineProfiles}
+                color="primary"
+                sx={{
+                  marginLeft: "25px",
+                  animation: "pulse 5s infinite",
+                  "@keyframes pulse": {
+                    "0%": {
+                      transform: "scale(1)",
+                    },
+                    "50%": {
+                      transform: "scale(1.2)",
+                    },
+                    "100%": {
+                      transform: "scale(1)",
+                    },
+                  },
+                }}
+              ></Badge>
               <AccountCircleIcon />
-            </Badge>
+            </>
           }
           component={Link}
           to="/user"

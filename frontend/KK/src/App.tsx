@@ -15,10 +15,12 @@ import i18n from "i18next";
 import enTranslations from "./i18n/en/translations.json";
 import frTranslations from "./i18n/fr/translations.json";
 import {
+  Timestamp,
   collection,
+  doc,
   getDocs,
-  onSnapshot,
   query,
+  setDoc,
   where,
 } from "firebase/firestore";
 import { Profile } from "./types/Profile";
@@ -27,6 +29,7 @@ import { useQuery } from "react-query";
 import Navigator from "./components/Navigator";
 import PoopingWithFriends from "./components/PoopingWIthFriends";
 import MapPage from "./components/Map";
+import useOnlineUsers from "./queries/useOnlineUsers";
 
 // Create AuthContext inline
 const AuthContext = createContext<{ currentUser: User | null }>({
@@ -41,7 +44,8 @@ function App() {
   const [currentLang, setCurrentLang] = useState<string>("fr");
   const location = useLocation();
   const [error, setError] = useState<boolean>(false);
-  const [onlineProfiles, setOnlineProfiles] = useState<number>(0);
+
+  const { onlineUsers, isLoading: isLoadingOnlineUsers } = useOnlineUsers();
 
   useEffect(() => {
     const handleNetworkChange = () => {
@@ -101,12 +105,58 @@ function App() {
       staleTime: Infinity,
     }
   );
+  useEffect(() => {
+    // Handle setting user as offline when the window/tab is closed
+    const handleWindowClose = () => {
+      if (currentUser) {
+        const userRef = doc(firestore, "profiles", currentUser.uid);
+        setDoc(userRef, { online: false }, { merge: true }); // Set user as offline
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Tab gains focus, set user as online
+        if (currentUser) {
+          const userRef = doc(firestore, "profiles", currentUser.uid);
+          setDoc(
+            userRef,
+            { online: true, lastConnection: Timestamp.now().toMillis() },
+            { merge: true }
+          );
+        }
+      } else if (document.visibilityState === "hidden") {
+        // Tab loses focus, set user as offline
+        if (currentUser) {
+          const userRef = doc(firestore, "profiles", currentUser.uid);
+          setDoc(userRef, { online: false }, { merge: true });
+        }
+      }
+    };
+    window.addEventListener("beforeunload", handleWindowClose);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleWindowClose);
+    };
+  }, [currentUser]);
 
   useEffect(() => {
     setLoading(true);
     const unsubscribe = onAuthStateChanged(getAuth(), async (user) => {
       if (user) {
         setCurrentUser(user);
+        // try {
+        //   const profileRef = doc(collection(firestore, "profiles"), user.uid);
+        //   await updateDoc(profileRef, {
+        //     online: true,
+        //     lastConnection: Timestamp.now().toMillis(),
+        //   }).catch(() => setError(true));
+        //   setLoading(false);
+        // } catch (error) {
+        //   console.error("Error updating last connection:", error);
+        //   setLoading(false);
+        // }
         setLoading(false);
       } else {
         setCurrentUser(null);
@@ -115,6 +165,10 @@ function App() {
     });
 
     return () => {
+      // if (currentUser) {
+      //   const userRef = doc(firestore, "profiles", currentUser.uid);
+      //   setDoc(userRef, { online: false }, { merge: true }); // Set user as offline
+      // }
       unsubscribe();
     };
   }, []);
@@ -144,24 +198,6 @@ function App() {
       });
   }, [currentLang]);
 
-  useEffect(() => {
-    // Listen for changes in the 'profiles' collection where the 'online' field is true
-    const unsubscribe = onSnapshot(
-      query(collection(firestore, "profiles"), where("online", "==", true)),
-      (snapshot) => {
-        const updatedOnlineUsers: Profile[] = [];
-        snapshot.forEach((doc) => {
-          updatedOnlineUsers.push({ id: doc.id, ...doc.data() } as Profile);
-        });
-        setOnlineProfiles(updatedOnlineUsers.length);
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
   return (
     <AuthContext.Provider value={{ currentUser }}>
       <Box
@@ -176,7 +212,7 @@ function App() {
           <div>Merde!</div>
         ) : (
           <>
-            {loading || isLoading ? (
+            {loading || isLoading || isLoadingOnlineUsers ? (
               <CircularProgress />
             ) : currentUser ? (
               <>
@@ -201,7 +237,7 @@ function App() {
                       currentRoute={currentRoute}
                       currentLang={currentLang}
                       setCurrentLang={setCurrentLang}
-                      onlineProfiles={onlineProfiles}
+                      onlineProfiles={onlineUsers.length}
                     />
                   </>
                 ) : (

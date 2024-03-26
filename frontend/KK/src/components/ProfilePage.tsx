@@ -8,52 +8,21 @@ import {
   DialogTitle,
   Stack,
   ButtonGroup,
+  CircularProgress,
 } from "@mui/material";
 import { getAuth, signOut } from "firebase/auth";
 import { useAuth } from "../App";
-import { query, collection, where, getDocs } from "firebase/firestore";
-import { useQuery } from "react-query";
-import { firestore } from "../firebase";
-import { Profile } from "../types/Profile";
 import PoopEntries from "./PoopEntries";
 import { useState } from "react";
 import { StyledBadge } from "../styles/styledComponents";
 import { useNavigate } from "react-router-dom";
+import useUserProfile from "../queries/useUserProfile";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-  const { data: profile } = useQuery<Profile | null | undefined>(
-    ["profiles", currentUser?.uid],
-    async () => {
-      if (currentUser) {
-        try {
-          const userPoopsQuery = query(
-            collection(firestore, "profiles"),
-            where("id", "==", currentUser?.uid)
-          );
-          const querySnapshot = await getDocs(userPoopsQuery);
-          const entries: Profile[] = [];
-          querySnapshot.forEach((doc) => {
-            entries.push({ id: doc.id, ...doc.data() } as Profile);
-          });
-          // Check if user has a profile, if not, navigate to create profile page
-          if (entries.length === 0) {
-            return null;
-          } else {
-            return entries[0];
-          }
-        } catch (error) {
-          console.error("Error fetching profile:", error);
-          return null;
-        }
-      }
-    },
-    {
-      staleTime: Infinity,
-    }
-  );
+  const { profile, isLoading } = useUserProfile(currentUser?.uid);
 
   const handleLogout = async () => {
     try {
@@ -78,6 +47,7 @@ const ProfilePage = () => {
 
   return (
     <div style={{ marginBottom: "4rem", width: "100%", marginTop: "1.5rem" }}>
+      {isLoading && <CircularProgress />}
       <div style={{ textAlign: "center" }}>
         <StyledBadge
           overlap="circular"
@@ -85,7 +55,8 @@ const ProfilePage = () => {
           variant="dot"
         >
           <Avatar
-            alt={profile?.username}
+            alt="/KK.svg"
+            srcSet={profile?.profilePicUrl}
             src={profile?.profilePicUrl}
             style={{ width: "150px", height: "150px", margin: "auto" }}
           />

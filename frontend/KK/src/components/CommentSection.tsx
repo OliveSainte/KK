@@ -9,7 +9,11 @@ const CommentSection: React.FC<{ comments: Comment[] }> = ({ comments }) => {
       {comments.map((comment: Comment) => (
         <Box key={comment.id} mb={2} display="flex" alignItems="flex-start">
           {/* Avatar or Profile Picture */}
-          <Avatar alt={comment.userName} src={comment.userProfilePic} />
+          <Avatar
+            alt="/KK.svg"
+            src={comment.userProfilePic}
+            srcSet={comment.userProfilePic}
+          />
 
           {/* Comment Content */}
           <Box ml={2}>
