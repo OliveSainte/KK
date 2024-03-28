@@ -9,8 +9,10 @@ import PoopEntryCard from "./PoopEntryCard";
 import L from "leaflet";
 import "../styles/styles..css";
 import { brown } from "../../public/colors";
+import { useAuth } from "../App";
 
 const MapPage = () => {
+  const { currentUser } = useAuth();
   const [homePoops, setHomePoops] = useState<number>(0);
   const [awayPoops, setAwayPoops] = useState<number>(0);
   const [positions, setPositions] = useState<PoopEntry[]>([]);
@@ -46,6 +48,33 @@ const MapPage = () => {
     }
   );
 
+  const [userMostRecentPoop, setUserMostRecentPoop] =
+    useState<PoopEntry | null>(null);
+
+  useEffect(() => {
+    if (poopEntries) {
+      const fetchUserMostRecentPoop = async () => {
+        if (currentUser && poopEntries.length > 0) {
+          // Filter poopEntries for the current user's entries
+          const currentUserPoopEntries = poopEntries.filter(
+            (entry) => entry.createdById === currentUser.uid
+          );
+
+          // Sort the filtered entries by timestamp in descending order
+          currentUserPoopEntries.sort(
+            (a, b) => b.dateTime.toMillis() - a.dateTime.toMillis()
+          );
+
+          // Get the most recent poop entry for the current user
+          const mostRecentPoop = currentUserPoopEntries[0];
+          setUserMostRecentPoop(mostRecentPoop);
+        }
+      };
+
+      fetchUserMostRecentPoop();
+    }
+  }, [currentUser, poopEntries]);
+
   useEffect(() => {
     if (!poopEntries || poopEntries.length < 1 || isLoading) return;
 
@@ -67,9 +96,13 @@ const MapPage = () => {
     });
 
     if (pos.length < 1) return;
+
+    const initial = userMostRecentPoop ? userMostRecentPoop : poopEntries[0];
+
+    // Sort the user's poop entries by timestamp in descending order
     const latLngArray: [number, number] = [
-      pos[0].geoPoint?.latitude ?? 0,
-      pos[0].geoPoint?.longitude ?? 0,
+      initial.geoPoint?.latitude ?? 0,
+      initial.geoPoint?.longitude ?? 0,
     ];
 
     // Convert to Leaflet coordinates
